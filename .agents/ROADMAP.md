@@ -17,10 +17,10 @@ browsing.
 
 ## Phase 2: Shop, Cart, and Seasonal Offers
 
-**Status: OPEN** — batch 2.1 is complete; batches 2.2–2.3 remain.
+**Status: OPEN** — batches 2.1–2.2 are complete; batch 2.3 remains.
 
 - [x] Batch 2.1: Add product catalog and configurable seasonal offers.
-- [ ] Batch 2.2: Build the shop page with category filtering and cart actions.
+- [x] Batch 2.2: Build the shop page with category filtering and cart actions.
 - [ ] Batch 2.3: Add persistent slide-over cart and discount calculations.
 
 ## Phase 3: Serviceability, Checkout, and Orders
