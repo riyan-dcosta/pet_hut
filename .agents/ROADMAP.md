@@ -10,10 +10,10 @@ browsing.
 
 - [x] Batch 1.1: Initialize project structure and `.agents/` tracking.
 - [x] Batch 1.2: Build responsive navigation and footer.
-- [ ] Batch 1.3: Build the editorial pet showcase on the home page.
+- [x] Batch 1.3: Build the editorial pet showcase on the home page.
 - [ ] Batch 1.4: Add customer testimonials.
 
-**Status: OPEN** — batches 1.1–1.2 are complete; batches 1.3–1.4 remain.
+**Status: OPEN** — batches 1.1–1.3 are complete; batch 1.4 remains.
 
 ## Phase 2: Shop, Cart, and Seasonal Offers
 
