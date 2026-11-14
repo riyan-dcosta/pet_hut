@@ -9,11 +9,11 @@ browsing.
 ## Phase 1: Project Setup, Tracking, and Home Page
 
 - [x] Batch 1.1: Initialize project structure and `.agents/` tracking.
-- [ ] Batch 1.2: Build responsive navigation and footer.
+- [x] Batch 1.2: Build responsive navigation and footer.
 - [ ] Batch 1.3: Build the editorial pet showcase on the home page.
 - [ ] Batch 1.4: Add customer testimonials.
 
-**Status: OPEN** — awaiting execution of batches 1.2–1.4.
+**Status: OPEN** — batches 1.1–1.2 are complete; batches 1.3–1.4 remain.
 
 ## Phase 2: Shop, Cart, and Seasonal Offers
 

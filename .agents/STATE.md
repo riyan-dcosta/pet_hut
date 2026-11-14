@@ -1,24 +1,19 @@
 # Execution State
 
 [Completed Batch]
-Batch 1.1 — Initialized project tracking and the Vite/React/Tailwind foundation.
+Batch 1.2 — Added responsive navigation, an empty-state cart drawer with badge,
+and footer.
 
 [Files Modified]
-- `.agents/ROADMAP.md`
 - `.agents/STATE.md`
-- `.agents/ARCHITECTURE.md`
-- `.gitignore`
-- `index.html`
-- `package.json`
-- `postcss.config.js`
-- `tailwind.config.js`
-- `vite.config.js`
+- `.agents/ROADMAP.md`
 - `src/App.jsx`
-- `src/index.css`
-- `src/main.jsx`
+- `src/components/Navbar.jsx`
+- `src/components/CartDrawer.jsx`
+- `src/components/Footer.jsx`
 
 [Current Phase Status]
-Phase 1 is OPEN. Batch 1.1 is complete; batches 1.2–1.4 remain.
+Phase 1 is OPEN. Batches 1.1 and 1.2 are complete; batches 1.3–1.4 remain.
 
 [Exact Next Batch to Execute]
-Batch 1.2 — Build a clean, minimalistic responsive Navbar (Home, Shop, Cart Drawer/Badge, Sign-In button) and Footer.
+Batch 1.3 — Build the Home Page upper showcase with high-resolution dog and cat photos alongside enlarged titles and descriptions in an alternating editorial layout with generous whitespace.
