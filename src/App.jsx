@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import CartDrawer from './components/CartDrawer.jsx'
 import Footer from './components/Footer.jsx'
@@ -6,7 +6,7 @@ import Navbar from './components/Navbar.jsx'
 import PetShowcase from './components/PetShowcase.jsx'
 import Testimonials from './components/Testimonials.jsx'
 import ShopPage from './pages/ShopPage.jsx'
-import { getSeasonalPrice } from './services/seasonalOfferService.js'
+import { getCartSummary, loadCart, saveCart } from './services/cartService.js'
 
 export default function App() {
   return (
@@ -18,23 +18,38 @@ export default function App() {
 
 function StoreLayout() {
   const [cartOpen, setCartOpen] = useState(false)
-  const [cartItems, setCartItems] = useState([])
+  const [cartItems, setCartItems] = useState(loadCart)
   const closeCart = useCallback(() => setCartOpen(false), [])
-  const addToCart = useCallback((product, unitPriceRupees) => {
-    const price = unitPriceRupees ?? getSeasonalPrice(product).priceRupees
+  useEffect(() => {
+    saveCart(cartItems)
+  }, [cartItems])
+
+  const addToCart = useCallback((product) => {
     setCartItems((items) => {
-      const existing = items.find((item) => item.product.id === product.id)
+      const existing = items.find((item) => item.productId === product.id)
       if (existing) {
         return items.map((item) =>
-          item.product.id === product.id
+          item.productId === product.id
             ? { ...item, quantity: item.quantity + 1 }
             : item,
         )
       }
-      return [...items, { product, quantity: 1, unitPriceRupees: price }]
+      return [...items, { productId: product.id, quantity: 1 }]
     })
   }, [])
   const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0)
+  const updateCartQuantity = useCallback((productId, change) => {
+    setCartItems((items) =>
+      items
+        .map((item) =>
+          item.productId === productId
+            ? { ...item, quantity: item.quantity + change }
+            : item,
+        )
+        .filter((item) => item.quantity > 0),
+    )
+  }, [])
+  const cartSummary = getCartSummary(cartItems)
 
   return (
     <div className="flex min-h-screen flex-col bg-stone-50 text-stone-900">
@@ -54,7 +69,12 @@ function StoreLayout() {
         </Routes>
       </main>
       <Footer />
-      <CartDrawer isOpen={cartOpen} onClose={closeCart} items={cartItems} />
+      <CartDrawer
+        isOpen={cartOpen}
+        onClose={closeCart}
+        onQuantityChange={updateCartQuantity}
+        {...cartSummary}
+      />
     </div>
   )
 }

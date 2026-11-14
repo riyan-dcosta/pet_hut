@@ -119,7 +119,7 @@ export default function ShopPage({ onAddToCart }) {
                   </div>
                   <button
                     type="button"
-                    onClick={() => onAddToCart(product, priceRupees)}
+                    onClick={() => onAddToCart(product)}
                     className="mt-4 w-full rounded-full bg-stone-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-stone-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800"
                   >
                     Add to cart

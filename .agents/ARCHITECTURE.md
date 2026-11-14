@@ -9,6 +9,8 @@
 - `src/config/`: Frontend configuration, including seasonal offer settings.
 - React Context and `localStorage`: Shared cart state and persistence across
   navigation and authentication redirects.
+- `src/services/cartService.js`: Validates persisted cart entries, derives
+  current product and seasonal prices, and calculates rupee subtotals.
 
 ## Data schemas
 
@@ -55,6 +57,19 @@ Seasonal offer availability is controlled by one global
 offers define their eligible product IDs, discount, optional validity dates,
 and promotional banner text. The offer service applies discounts to eligible
 bundle products and exposes active offers for promotional banners.
+
+### CartItem
+
+```text
+CartItem {
+  productId: string
+  quantity: positive integer
+}
+```
+
+Cart entries store only product IDs and quantities in `localStorage`; product
+details and active seasonal discounts are resolved from the services whenever
+the cart is displayed.
 
 ### ServiceablePincode
 

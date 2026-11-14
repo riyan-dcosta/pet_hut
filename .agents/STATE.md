@@ -1,20 +1,24 @@
 # Execution State
 
 [Completed Batch]
-Batch 2.2 — Added the `/shop` catalog page with category filters, offer banners
-and badges, rupee pricing, and add-to-cart behavior with a live badge and drawer.
+Batch 2.3 — Added localStorage-backed cart persistence, quantity controls,
+current seasonal discount calculations, and rupee subtotal/total display;
+closed Phase 2.
 
 [Files Modified]
 - `.agents/STATE.md`
 - `.agents/ROADMAP.md`
+- `.agents/ARCHITECTURE.md`
 - `src/App.jsx`
 - `src/pages/ShopPage.jsx`
 - `src/components/CartDrawer.jsx`
+- `src/services/cartService.js`
 
 [Current Phase Status]
-Phase 1 is CLOSED. Phase 2 is OPEN. Batches 2.1–2.2 are complete; batch 2.3
-remains.
+Phases 1 and 2 are CLOSED. All batches in both phases are complete. Phase 3
+requires explicit approval before work begins.
 
 [Exact Next Batch to Execute]
-Batch 2.3 — Implement the slide-over cart with quantity controls, seasonal
-combo discount and subtotal calculations in rupees, and localStorage persistence.
+Wait for explicit approval to start Phase 3. Once approved, execute Batch 3.1 —
+add the Karnataka pincode serviceability widget and lookup, including delivery
+availability and estimated days.
