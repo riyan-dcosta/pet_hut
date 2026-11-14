@@ -28,6 +28,7 @@ Product {
   priceRupees: number
   mrpRupees: number
   weight: string | null
+  bundleProductIds?: string[]
   imageUrl: string
   active: boolean
   offerIds: string[]
@@ -42,13 +43,18 @@ SeasonalOffer {
   name: string
   description: string
   discountPercent: number
-  productIds: string[]
+  productIds: string[] // Products or bundles eligible for this offer
   startsAt: ISO-8601 datetime | null
   endsAt: ISO-8601 datetime | null
-  enabled: boolean
   bannerText: string
 }
 ```
+
+Seasonal offer availability is controlled by one global
+`seasonalOffersEnabled` flag in `src/config/seasonalOffers.js`. Individual
+offers define their eligible product IDs, discount, optional validity dates,
+and promotional banner text. The offer service applies discounts to eligible
+bundle products and exposes active offers for promotional banners.
 
 ### ServiceablePincode
 

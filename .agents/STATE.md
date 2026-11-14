@@ -1,21 +1,23 @@
 # Execution State
 
 [Completed Batch]
-Batch 1.4 — Added a clean testimonial grid with pet portraits, pet and owner
-names, and owner testimony; closed Phase 1.
+Batch 2.1 — Added the local product catalog, product service, global seasonal
+offer flag, offer lookup, bundle discount calculation, and banner data.
 
 [Files Modified]
 - `.agents/STATE.md`
 - `.agents/ROADMAP.md`
-- `src/App.jsx`
-- `src/components/Testimonials.jsx`
+- `.agents/ARCHITECTURE.md`
+- `src/config/seasonalOffers.js`
+- `src/data/products.js`
+- `src/services/productService.js`
+- `src/services/seasonalOfferService.js`
 
 [Current Phase Status]
-Phase 1 is CLOSED. All Phase 1 batches are complete. Phase 2 has not started
-and requires explicit approval.
+Phase 1 is CLOSED. Phase 2 is OPEN. Batch 2.1 is complete; batches 2.2–2.3
+remain.
 
 [Exact Next Batch to Execute]
-Wait for explicit approval to start Phase 2. Once approved, execute Batch 2.1 —
-create `src/config/seasonalOffers.js` and a local product catalog using INR
-rupee pricing, product weights, and the specified local brands; implement the
-single-flag seasonal combo offer configuration.
+Batch 2.2 — Build `/shop` with category filters for Dog Food, Cat Food, Treats,
+and Combos; show product cards, seasonal offer badges, and Add to Cart actions
+using the local product catalog and seasonal offer service.

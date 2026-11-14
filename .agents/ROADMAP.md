@@ -13,12 +13,13 @@ browsing.
 - [x] Batch 1.3: Build the editorial pet showcase on the home page.
 - [x] Batch 1.4: Add customer testimonials.
 
-**Status: CLOSED** — all Phase 1 batches are complete. Phase 2 requires
-explicit approval before work begins.
+**Status: CLOSED** — all Phase 1 batches are complete.
 
 ## Phase 2: Shop, Cart, and Seasonal Offers
 
-- [ ] Batch 2.1: Add product catalog and configurable seasonal offers.
+**Status: OPEN** — batch 2.1 is complete; batches 2.2–2.3 remain.
+
+- [x] Batch 2.1: Add product catalog and configurable seasonal offers.
 - [ ] Batch 2.2: Build the shop page with category filtering and cart actions.
 - [ ] Batch 2.3: Add persistent slide-over cart and discount calculations.
 
