@@ -4,6 +4,7 @@ import CartDrawer from './components/CartDrawer.jsx'
 import Footer from './components/Footer.jsx'
 import Navbar from './components/Navbar.jsx'
 import PetShowcase from './components/PetShowcase.jsx'
+import Testimonials from './components/Testimonials.jsx'
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ function StoreLayout() {
       <Navbar onCartClick={() => setCartOpen(true)} />
       <main className="flex-1">
         <PetShowcase />
+        <Testimonials />
       </main>
       <Footer />
       <CartDrawer isOpen={cartOpen} onClose={closeCart} />
