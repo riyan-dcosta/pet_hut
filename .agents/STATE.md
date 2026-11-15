@@ -1,23 +1,26 @@
 # Execution State
 
 [Completed Batch]
-Batch 2.1 — Added the local product catalog, product service, global seasonal
-offer flag, offer lookup, bundle discount calculation, and banner data.
+Batch 3.1 — Added a shared Karnataka pincode checker to Shop and Cart with
+serviceability feedback, estimated delivery windows, and saved pincode state.
 
 [Files Modified]
 - `.agents/STATE.md`
 - `.agents/ROADMAP.md`
 - `.agents/ARCHITECTURE.md`
-- `src/config/seasonalOffers.js`
-- `src/data/products.js`
-- `src/services/productService.js`
-- `src/services/seasonalOfferService.js`
+- `src/App.jsx`
+- `src/pages/ShopPage.jsx`
+- `src/components/CartDrawer.jsx`
+- `src/components/PincodeChecker.jsx`
+- `src/data/serviceablePincodes.js`
+- `src/services/pincodeService.js`
+- `src/services/cartService.js`
 
 [Current Phase Status]
-Phase 1 is CLOSED. Phase 2 is OPEN. Batch 2.1 is complete; batches 2.2–2.3
-remain.
+Phases 1 and 2 are CLOSED. Phase 3 is OPEN. Batch 3.1 is complete; batches
+3.2–3.4 remain.
 
 [Exact Next Batch to Execute]
-Batch 2.2 — Build `/shop` with category filters for Dog Food, Cat Food, Treats,
-and Combos; show product cards, seasonal offer badges, and Add to Cart actions
-using the local product catalog and seasonal offer service.
+Batch 3.2 — Add a checkout authentication gate: guest users can browse and
+build a cart, and checkout prompts phone or email sign-in with OTP/Magic Link
+while preserving the cart.

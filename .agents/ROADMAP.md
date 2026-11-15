@@ -17,15 +17,17 @@ browsing.
 
 ## Phase 2: Shop, Cart, and Seasonal Offers
 
-**Status: OPEN** — batch 2.1 is complete; batches 2.2–2.3 remain.
+**Status: CLOSED** — all Phase 2 batches are complete.
 
 - [x] Batch 2.1: Add product catalog and configurable seasonal offers.
-- [ ] Batch 2.2: Build the shop page with category filtering and cart actions.
-- [ ] Batch 2.3: Add persistent slide-over cart and discount calculations.
+- [x] Batch 2.2: Build the shop page with category filtering and cart actions.
+- [x] Batch 2.3: Add persistent slide-over cart and discount calculations.
 
 ## Phase 3: Serviceability, Checkout, and Orders
 
-- [ ] Batch 3.1: Add Karnataka pincode serviceability checks.
+**Status: OPEN** — batch 3.1 is complete; batches 3.2–3.4 remain.
+
+- [x] Batch 3.1: Add Karnataka pincode serviceability checks.
 - [ ] Batch 3.2: Add checkout authentication gate.
 - [ ] Batch 3.3: Add address entry and order placement.
 - [ ] Batch 3.4: Add order history, cancellation, and return requests.

@@ -9,6 +9,11 @@
 - `src/config/`: Frontend configuration, including seasonal offer settings.
 - React Context and `localStorage`: Shared cart state and persistence across
   navigation and authentication redirects.
+- `src/services/cartService.js`: Validates persisted cart entries, derives
+  current product and seasonal prices, and calculates rupee subtotals.
+- `src/services/pincodeService.js`: Checks six-digit pincodes against the
+  local Karnataka serviceability sample; Batch 4.1 replaces this lookup with
+  backend data.
 
 ## Data schemas
 
@@ -56,18 +61,35 @@ offers define their eligible product IDs, discount, optional validity dates,
 and promotional banner text. The offer service applies discounts to eligible
 bundle products and exposes active offers for promotional banners.
 
+### CartItem
+
+```text
+CartItem {
+  productId: string
+  quantity: positive integer
+}
+```
+
+Cart entries store only product IDs and quantities in `localStorage`; product
+details and active seasonal discounts are resolved from the services whenever
+the cart is displayed.
+
 ### ServiceablePincode
 
 ```text
 ServiceablePincode {
-  pincode: string
+  startPincode: integer
+  endPincode: integer
   state: "Karnataka"
   city: string
   district: string
-  serviceable: boolean
-  estimatedDeliveryDays: integer | null
+  deliveryDays: { min: integer, max: integer }
 }
 ```
+
+`src/data/serviceablePincodes.js` currently contains bounded sample ranges for
+Bengaluru, Mysuru, Mangaluru, and Hubballi; these are mock records and must be
+replaced with verified serviceability data before production use.
 
 ### Order
 
