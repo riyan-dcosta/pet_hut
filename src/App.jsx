@@ -113,8 +113,8 @@ function StoreLayout() {
     setAuthOpen(false)
     setContinueAfterAuth(false)
   }, [])
-  const handlePlaceOrder = useCallback((address) => {
-    const order = placeOrder({ user, cartItems, address, pincodeResult })
+  const handlePlaceOrder = useCallback(async (address) => {
+    const order = await placeOrder({ user, cartItems, address, pincodeResult })
     setCartItems([])
     setCartOpen(false)
     navigate(`/orders/${order.id}/confirmation`)

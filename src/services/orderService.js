@@ -2,6 +2,7 @@ import { getCartSummary } from './cartService.js'
 import { checkPincodeServiceability } from './pincodeService.js'
 
 const ORDERS_STORAGE_KEY = 'pet-hut-orders'
+const ORDERS_LOCK_NAME = 'pet-hut-orders'
 const ORDER_STATUSES = [
   'placed',
   'processing',
@@ -24,6 +25,14 @@ export const orderRequestReasons = {
     'Pet did not accept the product',
     'Other',
   ],
+}
+
+function withOrderLock(operation) {
+  const locks = window.navigator?.locks
+  if (!locks?.request) {
+    throw new Error('Your browser does not support synchronized order updates across tabs.')
+  }
+  return locks.request(ORDERS_LOCK_NAME, operation)
 }
 
 function isValidOrder(order) {
@@ -65,26 +74,20 @@ function readOrders() {
   try {
     orders = JSON.parse(savedOrders)
   } catch (error) {
-    console.warn('Unable to parse saved orders; clearing invalid order data.', error)
-    window.localStorage.removeItem(ORDERS_STORAGE_KEY)
+    console.warn('Unable to parse saved orders; ignoring invalid order data.', error)
     return []
   }
 
   if (!Array.isArray(orders)) {
-    console.warn('Saved orders are invalid: expected a list. Clearing invalid order data.')
-    window.localStorage.removeItem(ORDERS_STORAGE_KEY)
+    console.warn('Saved orders are invalid: expected a list.')
     return []
   }
 
   const validOrders = orders.filter((order) => {
     if (isValidOrder(order)) return true
-    console.warn('A malformed saved order was removed.')
+    console.warn('A malformed saved order was ignored.')
     return false
   })
-
-  if (validOrders.length !== orders.length) {
-    window.localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(validOrders))
-  }
 
   return validOrders
 }
@@ -118,7 +121,7 @@ function validateAddress(address, pincodeResult) {
   }
 }
 
-export function placeOrder({ user, cartItems, address, pincodeResult }) {
+export async function placeOrder({ user, cartItems, address, pincodeResult }) {
   if (!user?.identifier) {
     throw new Error('Sign in before placing your order.')
   }
@@ -156,8 +159,10 @@ export function placeOrder({ user, cartItems, address, pincodeResult }) {
     returnReason: null,
   }
 
-  const orders = readOrders()
-  window.localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify([...orders, order]))
+  await withOrderLock(() => {
+    const orders = readOrders()
+    window.localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify([...orders, order]))
+  })
   return order
 }
 
@@ -172,7 +177,7 @@ export function getOrdersByUser(userId) {
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
 }
 
-export function updateOrderRequest({ orderId, userId, action, reason }) {
+export async function updateOrderRequest({ orderId, userId, action, reason }) {
   const selectedReason = typeof reason === 'string' ? reason.trim() : ''
   if (!selectedReason) {
     throw new Error('Select a reason before submitting your request.')
@@ -184,35 +189,37 @@ export function updateOrderRequest({ orderId, userId, action, reason }) {
     throw new Error('Select one of the listed reasons.')
   }
 
-  const orders = readOrders()
-  const orderIndex = orders.findIndex(
-    (order) => order.id === orderId && order.userId === userId,
-  )
-  if (orderIndex === -1) {
-    throw new Error('This order was not found for your account.')
-  }
+  return withOrderLock(() => {
+    const orders = readOrders()
+    const orderIndex = orders.findIndex(
+      (order) => order.id === orderId && order.userId === userId,
+    )
+    if (orderIndex === -1) {
+      throw new Error('This order was not found for your account.')
+    }
 
-  const order = orders[orderIndex]
-  if (action === 'cancel') {
-    if (!['placed', 'processing', 'shipped'].includes(order.status)) {
-      throw new Error('Only active orders can be cancelled.')
+    const order = orders[orderIndex]
+    if (action === 'cancel') {
+      if (!['placed', 'processing', 'shipped'].includes(order.status)) {
+        throw new Error('Only active orders can be cancelled.')
+      }
+      orders[orderIndex] = {
+        ...order,
+        status: 'cancelled',
+        cancellationReason: selectedReason,
+      }
+    } else {
+      if (order.status !== 'delivered') {
+        throw new Error('Only delivered orders can be returned.')
+      }
+      orders[orderIndex] = {
+        ...order,
+        status: 'return_requested',
+        returnReason: selectedReason,
+      }
     }
-    orders[orderIndex] = {
-      ...order,
-      status: 'cancelled',
-      cancellationReason: selectedReason,
-    }
-  } else {
-    if (order.status !== 'delivered') {
-      throw new Error('Only delivered orders can be returned.')
-    }
-    orders[orderIndex] = {
-      ...order,
-      status: 'return_requested',
-      returnReason: selectedReason,
-    }
-  }
 
-  window.localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders))
-  return orders[orderIndex]
+    window.localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders))
+    return orders[orderIndex]
+  })
 }

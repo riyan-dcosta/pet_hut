@@ -33,11 +33,11 @@ export default function OrdersPage({ user }) {
     setError('')
   }
 
-  const submitAction = (event) => {
+  const submitAction = async (event) => {
     event.preventDefault()
     setError('')
     try {
-      updateOrderRequest({
+      await updateOrderRequest({
         orderId: action.orderId,
         userId: user.identifier,
         action: action.type,

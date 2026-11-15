@@ -24,17 +24,24 @@ export function getCurrentUser() {
   const savedUser = window.localStorage.getItem(AUTH_STORAGE_KEY)
   if (!savedUser) return null
 
+  let user
   try {
-    const user = JSON.parse(savedUser)
-    if (
-      user &&
-      typeof user.identifier === 'string' &&
-      (user.method === 'email' || user.method === 'phone')
-    ) {
-      return user
-    }
+    user = JSON.parse(savedUser)
   } catch (error) {
     console.warn('Unable to read saved sign-in state.', error)
+  }
+
+  if (
+    user &&
+    typeof user.identifier === 'string' &&
+    (user.method === 'email' || user.method === 'phone')
+  ) {
+    try {
+      return {
+        ...user,
+        identifier: normalizeIdentifier(user.method, user.identifier),
+      }
+    } catch {}
   }
 
   window.localStorage.removeItem(AUTH_STORAGE_KEY)

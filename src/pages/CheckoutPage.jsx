@@ -41,11 +41,11 @@ export default function CheckoutPage({
     setAddress((current) => ({ ...current, [name]: value }))
   }
 
-  const submitOrder = (event) => {
+  const submitOrder = async (event) => {
     event.preventDefault()
     setError('')
     try {
-      onPlaceOrder(address)
+      await onPlaceOrder(address)
     } catch (orderError) {
       setError(orderError.message)
     }
