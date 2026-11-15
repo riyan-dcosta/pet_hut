@@ -32,7 +32,8 @@ export function loadCart() {
       !Number.isSafeInteger(item.quantity) ||
       item.quantity < 1
     ) {
-      throw new Error(`Saved cart item ${index + 1} is invalid.`)
+      console.warn(`Saved cart item ${index + 1} is invalid and was removed.`)
+      return null
     }
 
     if (!getProductById(item.productId)) {
