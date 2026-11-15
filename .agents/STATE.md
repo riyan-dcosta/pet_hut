@@ -14,6 +14,7 @@ serviceability feedback, estimated delivery windows, and saved pincode state.
 - `src/components/PincodeChecker.jsx`
 - `src/data/serviceablePincodes.js`
 - `src/services/pincodeService.js`
+- `src/services/cartService.js`
 
 [Current Phase Status]
 Phases 1 and 2 are CLOSED. Phase 3 is OPEN. Batch 3.1 is complete; batches

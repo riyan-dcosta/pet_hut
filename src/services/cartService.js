@@ -11,12 +11,20 @@ export function loadCart() {
   const savedCart = window.localStorage.getItem(CART_STORAGE_KEY)
   if (savedCart === null) return []
 
-  const parsedCart = JSON.parse(savedCart)
-  if (!Array.isArray(parsedCart)) {
-    throw new Error('Saved cart data is invalid: expected a list of cart items.')
+  let parsedCart
+  try {
+    parsedCart = JSON.parse(savedCart)
+  } catch (error) {
+    console.warn('Unable to load saved cart data; starting with an empty cart.', error)
+    return []
   }
 
-  return parsedCart.map((item, index) => {
+  if (!Array.isArray(parsedCart)) {
+    console.warn('Saved cart data is invalid: expected a list of cart items.')
+    return []
+  }
+
+  const cartItems = parsedCart.map((item, index) => {
     if (
       item === null ||
       typeof item !== 'object' ||
@@ -28,11 +36,15 @@ export function loadCart() {
     }
 
     if (!getProductById(item.productId)) {
-      throw new Error(`Saved cart item ${index + 1} references an unavailable product.`)
+      return null
     }
 
     return { productId: item.productId, quantity: item.quantity }
-  })
+  }).filter(Boolean)
+
+  if (cartItems.length !== parsedCart.length) saveCart(cartItems)
+
+  return cartItems
 }
 
 export function saveCart(cartItems) {

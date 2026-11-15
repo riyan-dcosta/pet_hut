@@ -83,7 +83,7 @@ ServiceablePincode {
   state: "Karnataka"
   city: string
   district: string
-  estimatedDeliveryDays: { min: integer, max: integer }
+  deliveryDays: { min: integer, max: integer }
 }
 ```
 
