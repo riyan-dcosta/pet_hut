@@ -11,7 +11,12 @@ export function loadCart() {
   const savedCart = window.localStorage.getItem(CART_STORAGE_KEY)
   if (savedCart === null) return []
 
-  const parsedCart = JSON.parse(savedCart)
+let parsedCart
+  try {
+    parsedCart = JSON.parse(savedCart)
+  } catch {
+    return []
+  }
   if (!Array.isArray(parsedCart)) {
     throw new Error('Saved cart data is invalid: expected a list of cart items.')
   }
