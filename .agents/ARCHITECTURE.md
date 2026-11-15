@@ -14,6 +14,9 @@
 - `src/services/pincodeService.js`: Checks six-digit pincodes against the
   local Karnataka serviceability sample; Batch 4.1 replaces this lookup with
   backend data.
+- `src/services/authService.js`: Provides a clearly labeled local demo OTP
+  flow and persists the demo sign-in state; Batch 4.1 replaces it with real
+  email/phone authentication.
 
 ## Data schemas
 
@@ -73,6 +76,20 @@ CartItem {
 Cart entries store only product IDs and quantities in `localStorage`; product
 details and active seasonal discounts are resolved from the services whenever
 the cart is displayed.
+
+### AuthUser
+
+```text
+AuthUser {
+  method: "phone" | "email"
+  identifier: string
+  signedInAt: ISO-8601 datetime
+}
+```
+
+Batch 3.2 uses a local demo code stored only in memory for five minutes and
+displays the code in the UI; it does not send SMS or email and is not production
+authentication. Cart state remains stored separately, so it survives sign-in.
 
 ### ServiceablePincode
 

@@ -21,6 +21,10 @@ export default function CartDrawer({
   pincodeResult,
   onPincodeChange,
   onPincodeCheck,
+  canCheckout = false,
+  checkoutMessage = '',
+  onCheckout,
+  isAuthenticated = false,
 }) {
   useEffect(() => {
     if (!isOpen) return undefined
@@ -131,6 +135,20 @@ export default function CartDrawer({
                   <dd>{currency.format(totalRupees)}</dd>
                 </div>
               </dl>
+              <p className="mt-3 text-xs leading-5 text-stone-500">
+                {checkoutMessage ||
+                  (canCheckout
+                    ? 'Delivery is available for your checked pincode.'
+                    : 'Check a serviceable Karnataka pincode to continue.')}
+              </p>
+              <button
+                type="button"
+                onClick={onCheckout}
+                disabled={!canCheckout}
+                className="mt-4 w-full rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-300"
+              >
+                {isAuthenticated ? 'Continue to checkout' : 'Proceed to checkout'}
+              </button>
             </div>
           </div>
         ) : (

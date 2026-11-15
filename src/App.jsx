@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import AuthDialog from './components/AuthDialog.jsx'
 import CartDrawer from './components/CartDrawer.jsx'
 import Footer from './components/Footer.jsx'
 import Navbar from './components/Navbar.jsx'
@@ -8,6 +9,7 @@ import PetShowcase from './components/PetShowcase.jsx'
 import Testimonials from './components/Testimonials.jsx'
 import ShopPage from './pages/ShopPage.jsx'
 import { getCartSummary, loadCart, saveCart } from './services/cartService.js'
+import { getCurrentUser } from './services/authService.js'
 import { checkPincodeServiceability } from './services/pincodeService.js'
 
 export default function App() {
@@ -20,6 +22,9 @@ export default function App() {
 
 function StoreLayout() {
   const [cartOpen, setCartOpen] = useState(false)
+  const [authOpen, setAuthOpen] = useState(false)
+  const [user, setUser] = useState(getCurrentUser)
+  const [checkoutMessage, setCheckoutMessage] = useState('')
   const [cartItems, setCartItems] = useState(loadCart)
   const [pincode, setPincode] = useState(
     () => window.localStorage.getItem('pet-hut-pincode') ?? '',
@@ -70,10 +75,27 @@ function StoreLayout() {
     )
   }, [])
   const cartSummary = getCartSummary(cartItems)
+  const canCheckout = Boolean(pincodeResult?.serviceable && cartItems.length > 0)
+  const handleCheckout = useCallback(() => {
+    if (!pincodeResult?.serviceable) {
+      setCheckoutMessage('Check a serviceable Karnataka pincode before checkout.')
+      return
+    }
+    setCheckoutMessage('')
+    setAuthOpen(true)
+  }, [pincodeResult])
+  const handleAuthenticated = useCallback((signedInUser) => {
+    setUser(signedInUser)
+  }, [])
+  const handleSignedOut = useCallback(() => setUser(null), [])
 
   return (
     <div className="flex min-h-screen flex-col bg-stone-50 text-stone-900">
-      <Navbar onCartClick={() => setCartOpen(true)} cartCount={cartCount} />
+      <Navbar
+        onCartClick={() => setCartOpen(true)}
+        onSignInClick={() => setAuthOpen(true)}
+        cartCount={cartCount}
+      />
       <main className="flex-1">
         <Routes>
           <Route
@@ -99,7 +121,7 @@ function StoreLayout() {
           />
         </Routes>
       </main>
-      <Footer />
+      <Footer onSignInClick={() => setAuthOpen(true)} />
       <CartDrawer
         isOpen={cartOpen}
         onClose={closeCart}
@@ -108,7 +130,18 @@ function StoreLayout() {
         pincodeResult={pincodeResult}
         onPincodeChange={handlePincodeChange}
         onPincodeCheck={handlePincodeCheck}
+        canCheckout={canCheckout}
+        checkoutMessage={checkoutMessage}
+        onCheckout={handleCheckout}
+        isAuthenticated={Boolean(user)}
         {...cartSummary}
+      />
+      <AuthDialog
+        isOpen={authOpen}
+        onClose={() => setAuthOpen(false)}
+        user={user}
+        onAuthenticated={handleAuthenticated}
+        onSignedOut={handleSignedOut}
       />
     </div>
   )
