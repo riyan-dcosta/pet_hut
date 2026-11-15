@@ -5,7 +5,7 @@ export default function PincodeChecker({
   onPincodeChange,
   onCheck,
 }) {
-  const resultIsCurrent = result?.pincode === pincode
+  const resultIsCurrent = result?.pincode === pincode.trim()
 
   return (
     <form

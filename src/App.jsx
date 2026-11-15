@@ -77,7 +77,7 @@ function StoreLayout() {
       <main className="flex-1">
         <Routes>
           <Route
-            path="/"
+            path="*"
             element={
               <>
                 <PetShowcase />
