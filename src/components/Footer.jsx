@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-export default function Footer() {
+export default function Footer({ onSignInClick, isAuthenticated = false }) {
   return (
     <footer className="border-t border-stone-200 bg-white">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-8 sm:px-8 md:flex-row md:items-center md:justify-between">
@@ -13,7 +13,14 @@ export default function Footer() {
         <nav className="flex gap-6 text-sm text-stone-600" aria-label="Footer navigation">
           <Link className="transition hover:text-stone-950" to="/">Home</Link>
           <Link className="transition hover:text-stone-950" to="/shop">Shop</Link>
-          <Link className="transition hover:text-stone-950" to="/sign-in">Sign in</Link>
+          {isAuthenticated && <Link className="transition hover:text-stone-950" to="/orders">Orders</Link>}
+          <button
+            type="button"
+            className="transition hover:text-stone-950"
+            onClick={onSignInClick}
+          >
+            Sign in
+          </button>
         </nav>
         <p className="text-xs text-stone-400">© {new Date().getFullYear()} Pet Hut</p>
       </div>

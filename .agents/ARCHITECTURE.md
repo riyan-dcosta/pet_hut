@@ -14,6 +14,13 @@
 - `src/services/pincodeService.js`: Checks six-digit pincodes against the
   local Karnataka serviceability sample; Batch 4.1 replaces this lookup with
   backend data.
+- `src/services/authService.js`: Provides a clearly labeled local demo OTP
+  flow and persists the demo sign-in state; Batch 4.1 replaces it with real
+  email/phone authentication.
+- `src/services/orderService.js`: Validates the signed-in user, cart, address,
+  and serviceable pincode before persisting a local order; also enforces
+  cancellation and return status transitions. Batch 4.1 replaces local order
+  storage with backend persistence.
 
 ## Data schemas
 
@@ -74,6 +81,20 @@ Cart entries store only product IDs and quantities in `localStorage`; product
 details and active seasonal discounts are resolved from the services whenever
 the cart is displayed.
 
+### AuthUser
+
+```text
+AuthUser {
+  method: "phone" | "email"
+  identifier: string
+  signedInAt: ISO-8601 datetime
+}
+```
+
+Batch 3.2 uses a local demo code stored only in memory for five minutes and
+displays the code in the UI; it does not send SMS or email and is not production
+authentication. Cart state remains stored separately, so it survives sign-in.
+
 ### ServiceablePincode
 
 ```text
@@ -96,7 +117,7 @@ replaced with verified serviceability data before production use.
 ```text
 Order {
   id: string
-  userId: string
+  userId: string // Signed-in email or phone identifier in the local mock
   status: "placed" | "processing" | "shipped" | "delivered" | "cancelled" | "return_requested"
   items: Array<{
     productId: string
@@ -122,3 +143,11 @@ Order {
   returnReason: string | null
 }
 ```
+
+Orders are stored in the browser under `pet-hut-orders`. Order placement
+revalidates the pincode and requires its city and district to match the
+serviceability lookup. Cart storage is cleared only after the order is saved.
+The signed-in `/orders` page only displays orders owned by the current local
+demo user. Cancellation is available for placed, processing, and shipped
+orders; return requests are available only for delivered orders. Both actions
+require a selected reason and update the order's status and reason.

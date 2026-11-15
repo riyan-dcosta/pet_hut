@@ -2,7 +2,12 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Menu, ShoppingBag, X } from 'lucide-react'
 
-export default function Navbar({ onCartClick, cartCount = 0 }) {
+export default function Navbar({
+  onCartClick,
+  onSignInClick,
+  cartCount = 0,
+  isAuthenticated = false,
+}) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   const closeMenu = () => setMenuOpen(false)
@@ -26,6 +31,11 @@ export default function Navbar({ onCartClick, cartCount = 0 }) {
           <Link className="text-sm text-stone-600 transition hover:text-stone-950" to="/shop">
             Shop
           </Link>
+          {isAuthenticated && (
+            <Link className="text-sm text-stone-600 transition hover:text-stone-950" to="/orders">
+              Orders
+            </Link>
+          )}
         </nav>
 
         <div className="hidden items-center gap-5 md:flex">
@@ -41,12 +51,13 @@ export default function Navbar({ onCartClick, cartCount = 0 }) {
               {cartCount}
             </span>
           </button>
-          <Link
-            to="/sign-in"
+          <button
+            type="button"
+            onClick={onSignInClick}
             className="rounded-full border border-stone-300 px-4 py-2 text-sm text-stone-800 transition hover:border-stone-900"
           >
             Sign in
-          </Link>
+          </button>
         </div>
 
         <div className="flex items-center gap-4 md:hidden">
@@ -81,9 +92,21 @@ export default function Navbar({ onCartClick, cartCount = 0 }) {
           <Link className="block py-3 text-sm text-stone-700" to="/shop" onClick={closeMenu}>
             Shop
           </Link>
-          <Link className="block py-3 text-sm text-stone-700" to="/sign-in" onClick={closeMenu}>
+          {isAuthenticated && (
+            <Link className="block py-3 text-sm text-stone-700" to="/orders" onClick={closeMenu}>
+              Orders
+            </Link>
+          )}
+          <button
+            type="button"
+            className="block py-3 text-sm text-stone-700"
+            onClick={() => {
+              closeMenu()
+              onSignInClick()
+            }}
+          >
             Sign in
-          </Link>
+          </button>
         </nav>
       )}
     </header>

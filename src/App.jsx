@@ -1,13 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
+import AuthDialog from './components/AuthDialog.jsx'
 import CartDrawer from './components/CartDrawer.jsx'
 import Footer from './components/Footer.jsx'
 import Navbar from './components/Navbar.jsx'
 import PincodeChecker from './components/PincodeChecker.jsx'
 import PetShowcase from './components/PetShowcase.jsx'
 import Testimonials from './components/Testimonials.jsx'
+import CheckoutPage from './pages/CheckoutPage.jsx'
+import OrderConfirmationPage from './pages/OrderConfirmationPage.jsx'
+import OrdersPage from './pages/OrdersPage.jsx'
 import ShopPage from './pages/ShopPage.jsx'
 import { getCartSummary, loadCart, saveCart } from './services/cartService.js'
+import { getCurrentUser } from './services/authService.js'
+import { placeOrder } from './services/orderService.js'
 import { checkPincodeServiceability } from './services/pincodeService.js'
 
 export default function App() {
@@ -19,12 +25,20 @@ export default function App() {
 }
 
 function StoreLayout() {
+  const navigate = useNavigate()
   const [cartOpen, setCartOpen] = useState(false)
+  const [authOpen, setAuthOpen] = useState(false)
+  const [continueAfterAuth, setContinueAfterAuth] = useState(false)
+  const [user, setUser] = useState(getCurrentUser)
+  const [checkoutMessage, setCheckoutMessage] = useState('')
   const [cartItems, setCartItems] = useState(loadCart)
   const [pincode, setPincode] = useState(
     () => window.localStorage.getItem('pet-hut-pincode') ?? '',
   )
-  const [pincodeResult, setPincodeResult] = useState(null)
+  const [pincodeResult, setPincodeResult] = useState(() => {
+    const savedPincode = window.localStorage.getItem('pet-hut-pincode')
+    return savedPincode ? checkPincodeServiceability(savedPincode) : null
+  })
   const closeCart = useCallback(() => setCartOpen(false), [])
   useEffect(() => {
     saveCart(cartItems)
@@ -70,10 +84,50 @@ function StoreLayout() {
     )
   }, [])
   const cartSummary = getCartSummary(cartItems)
+  const canCheckout = Boolean(pincodeResult?.serviceable && cartItems.length > 0)
+  const handleCheckout = useCallback(() => {
+    if (!pincodeResult?.serviceable) {
+      setCheckoutMessage('Check a serviceable Karnataka pincode before checkout.')
+      return
+    }
+    setCheckoutMessage('')
+    if (user) {
+      setCartOpen(false)
+      navigate('/checkout')
+      return
+    }
+    setContinueAfterAuth(true)
+    setAuthOpen(true)
+  }, [navigate, pincodeResult, user])
+  const handleAuthenticated = useCallback((signedInUser) => {
+    setUser(signedInUser)
+    setAuthOpen(false)
+    if (continueAfterAuth) {
+      setContinueAfterAuth(false)
+      setCartOpen(false)
+      navigate('/checkout')
+    }
+  }, [continueAfterAuth, navigate])
+  const handleSignedOut = useCallback(() => setUser(null), [])
+  const handleAuthClose = useCallback(() => {
+    setAuthOpen(false)
+    setContinueAfterAuth(false)
+  }, [])
+  const handlePlaceOrder = useCallback(async (address) => {
+    const order = await placeOrder({ user, cartItems, address, pincodeResult })
+    setCartItems([])
+    setCartOpen(false)
+    navigate(`/orders/${order.id}/confirmation`)
+  }, [cartItems, navigate, pincodeResult, user])
 
   return (
     <div className="flex min-h-screen flex-col bg-stone-50 text-stone-900">
-      <Navbar onCartClick={() => setCartOpen(true)} cartCount={cartCount} />
+      <Navbar
+        onCartClick={() => setCartOpen(true)}
+        onSignInClick={() => setAuthOpen(true)}
+        cartCount={cartCount}
+        isAuthenticated={Boolean(user)}
+      />
       <main className="flex-1">
         <Routes>
           <Route
@@ -97,9 +151,41 @@ function StoreLayout() {
               />
             }
           />
+          <Route
+            path="/checkout"
+            element={
+              user && cartItems.length > 0 ? (
+                <CheckoutPage
+                  user={user}
+                  pincodeResult={pincodeResult}
+                  cartItems={cartSummary.items}
+                  subtotalRupees={cartSummary.subtotalRupees}
+                  discountRupees={cartSummary.discountRupees}
+                  totalRupees={cartSummary.totalRupees}
+                  onPlaceOrder={handlePlaceOrder}
+                />
+              ) : (
+                <Navigate to="/shop" replace />
+              )
+            }
+          />
+          <Route
+            path="/orders"
+            element={user ? <OrdersPage user={user} /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/orders/:orderId/confirmation"
+            element={
+              user ? (
+                <OrderConfirmationPage user={user} />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
         </Routes>
       </main>
-      <Footer />
+      <Footer onSignInClick={() => setAuthOpen(true)} isAuthenticated={Boolean(user)} />
       <CartDrawer
         isOpen={cartOpen}
         onClose={closeCart}
@@ -108,7 +194,18 @@ function StoreLayout() {
         pincodeResult={pincodeResult}
         onPincodeChange={handlePincodeChange}
         onPincodeCheck={handlePincodeCheck}
+        canCheckout={canCheckout}
+        checkoutMessage={checkoutMessage}
+        onCheckout={handleCheckout}
+        isAuthenticated={Boolean(user)}
         {...cartSummary}
+      />
+      <AuthDialog
+        isOpen={authOpen}
+        onClose={handleAuthClose}
+        user={user}
+        onAuthenticated={handleAuthenticated}
+        onSignedOut={handleSignedOut}
       />
     </div>
   )
