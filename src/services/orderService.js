@@ -125,6 +125,12 @@ export async function placeOrder({ user, cartItems, address, pincodeResult }) {
   if (!user?.identifier) {
     throw new Error('Sign in before placing your order.')
   }
+  if (
+    !Array.isArray(cartItems) ||
+    !cartItems.every((item) => item && Number.isSafeInteger(item.quantity) && item.quantity > 0)
+  ) {
+    throw new Error('Your cart contains invalid items.')
+  }
   if (cartItems.length === 0) {
     throw new Error('Your cart is empty.')
   }

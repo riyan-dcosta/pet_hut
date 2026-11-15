@@ -25,6 +25,23 @@ test('ignores malformed orders without rewriting storage during reads', (t) => {
   assert.equal(storage.get(storageKey), savedOrders)
 })
 
+test('rejects invalid cart quantities before creating an order', async () => {
+  const invalidCarts = [
+    null,
+    {},
+    [{ productId: 'pedigree-adult-chicken-1-2kg', quantity: -2 }],
+    [{ productId: 'pedigree-adult-chicken-1-2kg', quantity: 1.5 }],
+    [{ productId: 'pedigree-adult-chicken-1-2kg', quantity: Number.MAX_SAFE_INTEGER + 1 }],
+  ]
+
+  for (const cartItems of invalidCarts) {
+    await assert.rejects(
+      placeOrder({ user: { identifier: 'user@example.com' }, cartItems }),
+      /cart contains invalid items/,
+    )
+  }
+})
+
 test('serializes concurrent order writes across tabs', async () => {
   const storage = new Map()
   let lockQueue = Promise.resolve()

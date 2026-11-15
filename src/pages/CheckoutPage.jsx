@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 const currency = new Intl.NumberFormat('en-IN', {
@@ -25,6 +25,8 @@ export default function CheckoutPage({
     pincode: pincodeResult?.pincode ?? '',
   }))
   const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const submittingRef = useRef(false)
 
   useEffect(() => {
     if (!pincodeResult?.serviceable) return
@@ -43,10 +45,15 @@ export default function CheckoutPage({
 
   const submitOrder = async (event) => {
     event.preventDefault()
+    if (submittingRef.current) return
+    submittingRef.current = true
+    setIsSubmitting(true)
     setError('')
     try {
       await onPlaceOrder(address)
     } catch (orderError) {
+      submittingRef.current = false
+      setIsSubmitting(false)
       setError(orderError.message)
     }
   }
@@ -171,7 +178,7 @@ export default function CheckoutPage({
             </Link>
             <button
               type="submit"
-              disabled={!serviceable || cartItems.length === 0}
+              disabled={!serviceable || cartItems.length === 0 || isSubmitting}
               className="rounded-full bg-stone-900 px-6 py-3 text-sm font-medium text-white hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-300"
             >
               Place order
