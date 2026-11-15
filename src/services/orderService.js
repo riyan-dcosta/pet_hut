@@ -2,6 +2,14 @@ import { getCartSummary } from './cartService.js'
 import { checkPincodeServiceability } from './pincodeService.js'
 
 const ORDERS_STORAGE_KEY = 'pet-hut-orders'
+const ORDER_STATUSES = [
+  'placed',
+  'processing',
+  'shipped',
+  'delivered',
+  'cancelled',
+  'return_requested',
+]
 
 export const orderRequestReasons = {
   cancel: [
@@ -18,15 +26,67 @@ export const orderRequestReasons = {
   ],
 }
 
+function isValidOrder(order) {
+  return Boolean(
+    order &&
+      typeof order.id === 'string' &&
+      typeof order.userId === 'string' &&
+      ORDER_STATUSES.includes(order.status) &&
+      Array.isArray(order.items) &&
+      order.items.length > 0 &&
+      order.items.every(
+        (item) =>
+          item &&
+          typeof item.productId === 'string' &&
+          typeof item.name === 'string' &&
+          Number.isSafeInteger(item.quantity) &&
+          item.quantity > 0 &&
+          Number.isFinite(item.unitPriceRupees),
+      ) &&
+      Number.isFinite(order.subtotalRupees) &&
+      Number.isFinite(order.discountRupees) &&
+      Number.isFinite(order.totalRupees) &&
+      order.address &&
+      ['name', 'phone', 'street', 'city', 'district', 'state', 'pincode'].every(
+        (field) => typeof order.address[field] === 'string',
+      ) &&
+      typeof order.createdAt === 'string' &&
+      (order.cancellationReason === null ||
+        typeof order.cancellationReason === 'string') &&
+      (order.returnReason === null || typeof order.returnReason === 'string'),
+  )
+}
+
 function readOrders() {
   const savedOrders = window.localStorage.getItem(ORDERS_STORAGE_KEY)
   if (savedOrders === null) return []
 
-  const orders = JSON.parse(savedOrders)
-  if (!Array.isArray(orders)) {
-    throw new Error('Saved order data is invalid. Please contact support before continuing.')
+  let orders
+  try {
+    orders = JSON.parse(savedOrders)
+  } catch (error) {
+    console.warn('Unable to parse saved orders; clearing invalid order data.', error)
+    window.localStorage.removeItem(ORDERS_STORAGE_KEY)
+    return []
   }
-  return orders
+
+  if (!Array.isArray(orders)) {
+    console.warn('Saved orders are invalid: expected a list. Clearing invalid order data.')
+    window.localStorage.removeItem(ORDERS_STORAGE_KEY)
+    return []
+  }
+
+  const validOrders = orders.filter((order) => {
+    if (isValidOrder(order)) return true
+    console.warn('A malformed saved order was removed.')
+    return false
+  })
+
+  if (validOrders.length !== orders.length) {
+    window.localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(validOrders))
+  }
+
+  return validOrders
 }
 
 function validateAddress(address, pincodeResult) {
@@ -101,8 +161,9 @@ export function placeOrder({ user, cartItems, address, pincodeResult }) {
   return order
 }
 
-export function getOrderById(orderId) {
-  return readOrders().find((order) => order.id === orderId) ?? null
+export function getOrderById(orderId, userId) {
+  if (!userId) return null
+  return readOrders().find((order) => order.id === orderId && order.userId === userId) ?? null
 }
 
 export function getOrdersByUser(userId) {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { X } from 'lucide-react'
 import { requestDemoOtp, signOut, verifyDemoOtp } from '../services/authService.js'
@@ -9,15 +9,54 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
   const [code, setCode] = useState('')
   const [requestedCode, setRequestedCode] = useState(null)
   const [error, setError] = useState('')
+  const dialogRef = useRef(null)
 
   useEffect(() => {
     if (!isOpen) return undefined
 
+    const previousActiveElement = document.activeElement
+    const getFocusableElements = () =>
+      Array.from(
+        dialogRef.current?.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter((element) => element.getClientRects().length > 0)
+    const initialFocusTarget = getFocusableElements()[0] ?? dialogRef.current
+    initialFocusTarget?.focus()
+
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') onClose()
+      if (event.key === 'Escape') {
+        onClose()
+        return
+      }
+
+      if (event.key !== 'Tab') return
+
+      const focusableElements = getFocusableElements()
+      if (focusableElements.length === 0) {
+        event.preventDefault()
+        dialogRef.current?.focus()
+        return
+      }
+
+      const first = focusableElements[0]
+      const last = focusableElements[focusableElements.length - 1]
+      if (event.shiftKey && (document.activeElement === first || !dialogRef.current?.contains(document.activeElement))) {
+        event.preventDefault()
+        last.focus()
+      } else if (
+        !event.shiftKey &&
+        (document.activeElement === last || !dialogRef.current?.contains(document.activeElement))
+      ) {
+        event.preventDefault()
+        first.focus()
+      }
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      if (previousActiveElement?.isConnected) previousActiveElement.focus()
+    }
   }, [isOpen, onClose])
 
   if (!isOpen) return null
@@ -59,10 +98,12 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
         aria-label="Close sign-in"
       />
       <section
+        ref={dialogRef}
         className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl sm:p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-title"
+        tabIndex={-1}
       >
         <button
           type="button"

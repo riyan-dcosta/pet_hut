@@ -109,6 +109,10 @@ function StoreLayout() {
     }
   }, [continueAfterAuth, navigate])
   const handleSignedOut = useCallback(() => setUser(null), [])
+  const handleAuthClose = useCallback(() => {
+    setAuthOpen(false)
+    setContinueAfterAuth(false)
+  }, [])
   const handlePlaceOrder = useCallback((address) => {
     const order = placeOrder({ user, cartItems, address, pincodeResult })
     setCartItems([])
@@ -169,7 +173,16 @@ function StoreLayout() {
             path="/orders"
             element={user ? <OrdersPage user={user} /> : <Navigate to="/" replace />}
           />
-          <Route path="/orders/:orderId/confirmation" element={<OrderConfirmationPage />} />
+          <Route
+            path="/orders/:orderId/confirmation"
+            element={
+              user ? (
+                <OrderConfirmationPage user={user} />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
         </Routes>
       </main>
       <Footer onSignInClick={() => setAuthOpen(true)} isAuthenticated={Boolean(user)} />
@@ -189,7 +202,7 @@ function StoreLayout() {
       />
       <AuthDialog
         isOpen={authOpen}
-        onClose={() => setAuthOpen(false)}
+        onClose={handleAuthClose}
         user={user}
         onAuthenticated={handleAuthenticated}
         onSignedOut={handleSignedOut}

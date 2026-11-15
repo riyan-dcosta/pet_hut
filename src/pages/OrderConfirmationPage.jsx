@@ -7,9 +7,9 @@ const currency = new Intl.NumberFormat('en-IN', {
   maximumFractionDigits: 2,
 })
 
-export default function OrderConfirmationPage() {
+export default function OrderConfirmationPage({ user }) {
   const { orderId } = useParams()
-  const order = getOrderById(orderId)
+  const order = getOrderById(orderId, user.identifier)
 
   if (!order) {
     return (
