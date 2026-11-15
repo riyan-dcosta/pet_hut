@@ -81,8 +81,8 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
               Welcome, pet parent.
             </h2>
             <p className="mt-3 text-sm leading-6 text-stone-600">
-              Signed in with {user.identifier}. Your cart stays saved. Checkout address and order
-              placement will be available in the next batch.
+              Signed in with {user.identifier}. Your cart stays saved. Open your cart to continue
+              checkout.
             </p>
             <button
               type="button"

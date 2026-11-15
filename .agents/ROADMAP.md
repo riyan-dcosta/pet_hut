@@ -25,11 +25,11 @@ browsing.
 
 ## Phase 3: Serviceability, Checkout, and Orders
 
-**Status: OPEN** — batches 3.1–3.2 are complete; batches 3.3–3.4 remain.
+**Status: OPEN** — batches 3.1–3.3 are complete; batch 3.4 remains.
 
 - [x] Batch 3.1: Add Karnataka pincode serviceability checks.
 - [x] Batch 3.2: Add checkout authentication gate.
-- [ ] Batch 3.3: Add address entry and order placement.
+- [x] Batch 3.3: Add address entry and order placement.
 - [ ] Batch 3.4: Add order history, cancellation, and return requests.
 
 ## Phase 4: Backend Integration

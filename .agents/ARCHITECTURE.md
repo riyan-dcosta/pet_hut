@@ -17,6 +17,9 @@
 - `src/services/authService.js`: Provides a clearly labeled local demo OTP
   flow and persists the demo sign-in state; Batch 4.1 replaces it with real
   email/phone authentication.
+- `src/services/orderService.js`: Validates the signed-in user, cart, address,
+  and serviceable pincode before persisting a local order; Batch 4.1 replaces
+  local order storage with backend persistence.
 
 ## Data schemas
 
@@ -113,7 +116,7 @@ replaced with verified serviceability data before production use.
 ```text
 Order {
   id: string
-  userId: string
+  userId: string // Signed-in email or phone identifier in the local mock
   status: "placed" | "processing" | "shipped" | "delivered" | "cancelled" | "return_requested"
   items: Array<{
     productId: string
@@ -139,3 +142,7 @@ Order {
   returnReason: string | null
 }
 ```
+
+Orders are stored in the browser under `pet-hut-orders`. Order placement
+revalidates the pincode and requires its city and district to match the
+serviceability lookup. Cart storage is cleared only after the order is saved.
