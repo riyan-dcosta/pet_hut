@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   getOrdersByUser,
@@ -22,10 +22,33 @@ const statusStyles = {
 }
 
 export default function OrdersPage({ user }) {
-  const [orders, setOrders] = useState(() => getOrdersByUser(user.identifier))
+  const [orders, setOrders] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [action, setAction] = useState(null)
   const [reason, setReason] = useState('')
   const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    setIsLoading(true)
+    setLoadError('')
+    getOrdersByUser(user.id)
+      .then((loadedOrders) => {
+        if (active) setOrders(loadedOrders)
+      })
+      .catch((requestError) => {
+        if (active) setLoadError(requestError.message)
+      })
+      .finally(() => {
+        if (active) setIsLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [user.id])
 
   const openAction = (orderId, type) => {
     setAction({ orderId, type })
@@ -36,18 +59,23 @@ export default function OrdersPage({ user }) {
   const submitAction = async (event) => {
     event.preventDefault()
     setError('')
+    setIsSubmitting(true)
     try {
-      await updateOrderRequest({
+      const updatedOrder = await updateOrderRequest({
         orderId: action.orderId,
-        userId: user.identifier,
+        userId: user.id,
         action: action.type,
         reason,
       })
-      setOrders(getOrdersByUser(user.identifier))
+      setOrders((currentOrders) =>
+        currentOrders.map((order) => (order.id === updatedOrder.id ? updatedOrder : order)),
+      )
       setAction(null)
       setReason('')
     } catch (requestError) {
       setError(requestError.message)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -67,7 +95,15 @@ export default function OrdersPage({ user }) {
         </Link>
       </header>
 
-      {orders.length === 0 ? (
+      {loadError ? (
+        <p className="rounded-xl border border-rose-200 bg-white p-6 text-rose-700" role="alert">
+          {loadError}
+        </p>
+      ) : isLoading ? (
+        <p className="rounded-xl border border-stone-200 bg-white p-6 text-stone-600" role="status">
+          Loading your orders…
+        </p>
+      ) : orders.length === 0 ? (
         <section className="rounded-2xl border border-stone-200 bg-white px-6 py-14 text-center">
           <h2 className="text-lg font-medium text-stone-900">No orders just yet</h2>
           <p className="mt-2 text-sm text-stone-600">Your orders will show up here.</p>
@@ -190,6 +226,7 @@ export default function OrdersPage({ user }) {
                         <select
                           id={`reason-${order.id}`}
                           required
+                          disabled={isSubmitting}
                           value={reason}
                           onChange={(event) => setReason(event.target.value)}
                           className="mt-2 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-800 focus:ring-1 focus:ring-emerald-800"
@@ -211,12 +248,16 @@ export default function OrdersPage({ user }) {
                         <div className="mt-4 flex gap-3">
                           <button
                             type="submit"
+                            disabled={isSubmitting}
                             className="rounded-full bg-stone-900 px-5 py-2.5 text-sm text-white hover:bg-stone-700"
                           >
-                            Submit {actionType === 'cancel' ? 'cancellation' : 'return request'}
+                            {isSubmitting
+                              ? 'Submitting…'
+                              : `Submit ${actionType === 'cancel' ? 'cancellation' : 'return request'}`}
                           </button>
                           <button
                             type="button"
+                            disabled={isSubmitting}
                             onClick={() => {
                               setAction(null)
                               setError('')

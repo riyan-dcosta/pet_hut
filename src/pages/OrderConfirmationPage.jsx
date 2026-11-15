@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getOrderById } from '../services/orderService.js'
 
@@ -9,13 +10,54 @@ const currency = new Intl.NumberFormat('en-IN', {
 
 export default function OrderConfirmationPage({ user }) {
   const { orderId } = useParams()
-  const order = getOrderById(orderId, user.identifier)
+  const [order, setOrder] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    setIsLoading(true)
+    setError('')
+    getOrderById(orderId, user.id)
+      .then((loadedOrder) => {
+        if (active) setOrder(loadedOrder)
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError.message)
+      })
+      .finally(() => {
+        if (active) setIsLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [orderId, user.id])
+
+  if (isLoading) {
+    return (
+      <main className="mx-auto max-w-2xl px-5 py-20 text-center" role="status">
+        <p className="text-stone-600">Loading your order…</p>
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className="mx-auto max-w-2xl px-5 py-20 text-center">
+        <p className="text-rose-700" role="alert">{error}</p>
+        <Link to="/shop" className="mt-6 inline-block text-sm underline underline-offset-4">
+          Return to shop
+        </Link>
+      </main>
+    )
+  }
 
   if (!order) {
     return (
       <main className="mx-auto max-w-2xl px-5 py-20 text-center">
         <h1 className="text-3xl font-medium text-stone-900">Order not found</h1>
-        <p className="mt-3 text-stone-600">This order is not available in this browser.</p>
+        <p className="mt-3 text-stone-600">This order is not available for your account.</p>
         <Link to="/shop" className="mt-6 inline-block text-sm underline underline-offset-4">
           Return to shop
         </Link>

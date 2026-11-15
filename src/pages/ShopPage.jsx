@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getProducts } from '../services/productService.js'
 import {
   getActiveSeasonalOffers,
@@ -26,10 +26,39 @@ export default function ShopPage({
   pincodeResult,
   onPincodeChange,
   onPincodeCheck,
+  isPincodeChecking,
+  pincodeError,
 }) {
   const [category, setCategory] = useState('all')
-  const products = getProducts(category === 'all' ? {} : { category })
-  const offers = getActiveSeasonalOffers()
+  const [products, setProducts] = useState([])
+  const [offers, setOffers] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    setIsLoading(true)
+    setError('')
+    Promise.all([
+      getProducts(category === 'all' ? {} : { category }),
+      getActiveSeasonalOffers(),
+    ])
+      .then(([loadedProducts, activeOffers]) => {
+        if (!active) return
+        setProducts(loadedProducts)
+        setOffers(activeOffers)
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError.message)
+      })
+      .finally(() => {
+        if (active) setIsLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [category])
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16">
@@ -65,6 +94,8 @@ export default function ShopPage({
           result={pincodeResult}
           onPincodeChange={onPincodeChange}
           onCheck={onPincodeCheck}
+          isChecking={isPincodeChecking}
+          error={pincodeError}
         />
       </div>
 
@@ -89,10 +120,18 @@ export default function ShopPage({
         })}
       </div>
 
-      {products.length > 0 ? (
+      {error ? (
+        <p className="mt-10 rounded-xl border border-rose-200 bg-white p-8 text-center text-rose-700" role="alert">
+          {error}
+        </p>
+      ) : isLoading ? (
+        <p className="mt-10 rounded-xl border border-stone-200 bg-white p-8 text-center text-stone-600" role="status">
+          Loading products…
+        </p>
+      ) : products.length > 0 ? (
         <div className="mt-6 grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.map((product) => {
-            const { priceRupees, offer } = getSeasonalPrice(product)
+            const { priceRupees, offer } = getSeasonalPrice(product, new Date(), offers)
             return (
               <article
                 key={product.id}

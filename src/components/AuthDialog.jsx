@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { X } from 'lucide-react'
-import { requestDemoOtp, signOut, verifyDemoOtp } from '../services/authService.js'
+import { requestOtp, signOut, verifyOtp } from '../services/authService.js'
 
 export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onSignedOut }) {
   const [method, setMethod] = useState('phone')
@@ -9,6 +9,7 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
   const [code, setCode] = useState('')
   const [requestedCode, setRequestedCode] = useState(null)
   const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const dialogRef = useRef(null)
 
   useEffect(() => {
@@ -61,32 +62,46 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
 
   if (!isOpen) return null
 
-  const handleRequestCode = (event) => {
+  const handleRequestCode = async (event) => {
     event.preventDefault()
     setError('')
+    setIsSubmitting(true)
     try {
-      setRequestedCode(requestDemoOtp(method, identifier))
+      setRequestedCode(await requestOtp(method, identifier))
       setCode('')
     } catch (requestError) {
       setError(requestError.message)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  const handleVerifyCode = (event) => {
+  const handleVerifyCode = async (event) => {
     event.preventDefault()
     setError('')
+    setIsSubmitting(true)
     try {
-      const signedInUser = verifyDemoOtp(method, identifier, code.trim())
+      const signedInUser = await verifyOtp(method, requestedCode.identifier, code.trim())
       setRequestedCode(null)
       onAuthenticated(signedInUser)
     } catch (verificationError) {
       setError(verificationError.message)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  const handleSignOut = () => {
-    signOut()
-    onSignedOut()
+  const handleSignOut = async () => {
+    setError('')
+    setIsSubmitting(true)
+    try {
+      await signOut()
+      onSignedOut()
+    } catch (signOutError) {
+      setError(signOutError.message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -136,6 +151,7 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
             <button
               type="button"
               onClick={handleSignOut}
+              disabled={isSubmitting}
               className="ml-5 mt-6 text-sm text-stone-600 underline underline-offset-4 hover:text-stone-900"
             >
               Sign out
@@ -150,12 +166,13 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
               Your cart is saved.
             </h2>
             <p className="mt-3 text-sm leading-6 text-stone-600">
-              Sign in to continue. This local demo does not send a real email or SMS.
+              Sign in to continue. A one-time code will be sent to your email or phone.
             </p>
 
             <div className="mt-6 grid grid-cols-2 rounded-full bg-stone-100 p-1">
               {['phone', 'email'].map((option) => (
                 <button
+                  disabled={isSubmitting}
                   key={option}
                   type="button"
                   onClick={() => {
@@ -193,18 +210,16 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
                 />
                 <button
                   type="submit"
+                  disabled={isSubmitting}
                   className="mt-4 w-full rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white hover:bg-stone-700"
                 >
-                  Send demo code
+                  {isSubmitting ? 'Sending…' : 'Send code'}
                 </button>
               </form>
             ) : (
               <form className="mt-5" onSubmit={handleVerifyCode}>
                 <p className="text-sm text-stone-600">
-                  Enter the demo code for {requestedCode.identifier}.
-                </p>
-                <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                  Demo code: <strong className="font-semibold">{requestedCode.demoCode}</strong>
+                  Enter the code sent to {requestedCode.identifier}.
                 </p>
                 <label htmlFor="auth-code" className="mt-4 block text-sm font-medium text-stone-800">
                   6-digit code
@@ -217,18 +232,21 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
                   pattern="[0-9]{6}"
                   maxLength={6}
                   required
+                  disabled={isSubmitting}
                   value={code}
                   onChange={(event) => setCode(event.target.value.replace(/\D/g, ''))}
                   className="mt-2 w-full rounded-xl border border-stone-300 px-4 py-3 text-sm tracking-[0.3em] outline-none focus:border-emerald-800 focus:ring-1 focus:ring-emerald-800"
                 />
                 <button
                   type="submit"
+                  disabled={isSubmitting}
                   className="mt-4 w-full rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white hover:bg-stone-700"
                 >
-                  Verify and sign in
+                  {isSubmitting ? 'Verifying…' : 'Verify and sign in'}
                 </button>
                 <button
                   type="button"
+                  disabled={isSubmitting}
                   onClick={() => {
                     setRequestedCode(null)
                     setCode('')
@@ -241,12 +259,12 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
               </form>
             )}
 
-            {error && (
-              <p className="mt-4 text-sm text-rose-700" role="alert">
-                {error}
-              </p>
-            )}
           </>
+        )}
+        {error && (
+          <p className="mt-4 text-sm text-rose-700" role="alert">
+            {error}
+          </p>
         )}
       </section>
     </div>

@@ -1,32 +1,46 @@
 # Application Architecture
 
-## Planned layers
+## Application and data layers
 
 - `src/`: React UI and browser entry point.
-- `src/services/`: Data access functions. During Phases 1–3 these use local,
-  structured mock data; Phase 4 replaces their internals with Supabase or
-  Firebase calls without changing UI consumers.
-- `src/config/`: Frontend configuration, including seasonal offer settings.
-- React Context and `localStorage`: Shared cart state and persistence across
-  navigation and authentication redirects.
-- `src/services/cartService.js`: Validates persisted cart entries, derives
-  current product and seasonal prices, and calculates rupee subtotals.
-- `src/services/pincodeService.js`: Checks six-digit pincodes against the
-  local Karnataka serviceability sample; Batch 4.1 replaces this lookup with
-  backend data.
-- `src/services/authService.js`: Provides a clearly labeled local demo OTP
-  flow and persists the demo sign-in state; Batch 4.1 replaces it with real
-  email/phone authentication.
-- `src/services/orderService.js`: Validates the signed-in user, cart, address,
-  and serviceable pincode before persisting a local order; also enforces
-  cancellation and return status transitions. Batch 4.1 replaces local order
-  storage with backend persistence.
+- `src/services/`: Async Supabase data/auth access. Database credentials are
+  limited to the public anon/publishable key; no service-role key belongs in
+  browser code.
+- `src/services/supabaseClient.js`: Lazily creates the browser client from
+  `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`; missing configuration is
+  reported rather than silently replaced with mock data.
+- `supabase/migrations/`: Database schema, sample catalog/offer/pincode rows,
+  row-level security, and database-enforced order operations.
+- `src/services/cartService.js`: Keeps only product IDs and quantities in
+  `localStorage`; prices and offers are resolved from Supabase.
+- `src/services/authService.js`: Supabase email/phone OTP and persisted auth
+  sessions.
+- `src/services/orderService.js`: Uses the authenticated user ID for all order
+  reads and requests. Order placement uses a database RPC to revalidate stock
+  availability, pincode, and current prices/discounts; database policies only
+  expose a user's own orders.
+
+## Supabase setup
+
+1. Copy `.env.example` to `.env` and set the Supabase project URL and public
+   anon/publishable key. Never use a service-role key in the Vite app.
+2. Apply `supabase/migrations/20261115000000_initial_schema.sql` to the project.
+   The migration seeds the current sample products, offers, and Karnataka
+   serviceability ranges.
+3. Enable Phone authentication and configure an SMS provider in Supabase for
+   phone OTP. Order phone numbers are normalized to India E.164 format. For
+   email OTP, configure the Supabase email template to send the one-time token
+   (rather than only a magic link).
+4. Run `npm install` and `npm run dev`.
+
+The sample pincode ranges are for development and must be replaced with
+verified serviceability data before production use.
 
 ## Data schemas
 
-These are the initial logical shapes. IDs should be stable strings (UUIDs are
-appropriate for backend records). Store monetary amounts in rupees as decimal
-numbers, for example `10.50` represents ₹10.50.
+All monetary amounts are stored as rupees with two decimal places. Product
+prices are served from `public.products`; seasonal discounts are read from
+enabled, date-valid `public.seasonal_offers` rows.
 
 ### Product
 
@@ -40,7 +54,7 @@ Product {
   priceRupees: number
   mrpRupees: number
   weight: string | null
-  bundleProductIds?: string[]
+  bundleProductIds: string[]
   imageUrl: string
   active: boolean
   offerIds: string[]
@@ -55,18 +69,13 @@ SeasonalOffer {
   name: string
   description: string
   discountPercent: number
-  productIds: string[] // Products or bundles eligible for this offer
+  productIds: string[]
   startsAt: ISO-8601 datetime | null
   endsAt: ISO-8601 datetime | null
+  enabled: boolean
   bannerText: string
 }
 ```
-
-Seasonal offer availability is controlled by one global
-`seasonalOffersEnabled` flag in `src/config/seasonalOffers.js`. Individual
-offers define their eligible product IDs, discount, optional validity dates,
-and promotional banner text. The offer service applies discounts to eligible
-bundle products and exposes active offers for promotional banners.
 
 ### CartItem
 
@@ -77,23 +86,19 @@ CartItem {
 }
 ```
 
-Cart entries store only product IDs and quantities in `localStorage`; product
-details and active seasonal discounts are resolved from the services whenever
-the cart is displayed.
+The cart remains in browser `localStorage` across navigation and authentication;
+current product details, offer prices, and totals are fetched from the backend.
 
 ### AuthUser
 
 ```text
 AuthUser {
+  id: UUID
   method: "phone" | "email"
   identifier: string
-  signedInAt: ISO-8601 datetime
+  signedInAt: ISO-8601 datetime | null
 }
 ```
-
-Batch 3.2 uses a local demo code stored only in memory for five minutes and
-displays the code in the UI; it does not send SMS or email and is not production
-authentication. Cart state remains stored separately, so it survives sign-in.
 
 ### ServiceablePincode
 
@@ -104,20 +109,18 @@ ServiceablePincode {
   state: "Karnataka"
   city: string
   district: string
-  deliveryDays: { min: integer, max: integer }
+  serviceable: boolean
+  deliveryDaysMin: integer
+  deliveryDaysMax: integer
 }
 ```
-
-`src/data/serviceablePincodes.js` currently contains bounded sample ranges for
-Bengaluru, Mysuru, Mangaluru, and Hubballi; these are mock records and must be
-replaced with verified serviceability data before production use.
 
 ### Order
 
 ```text
 Order {
-  id: string
-  userId: string // Signed-in email or phone identifier in the local mock
+  id: UUID
+  userId: UUID
   status: "placed" | "processing" | "shipped" | "delivered" | "cancelled" | "return_requested"
   items: Array<{
     productId: string
@@ -144,10 +147,7 @@ Order {
 }
 ```
 
-Orders are stored in the browser under `pet-hut-orders`. Order placement
-revalidates the pincode and requires its city and district to match the
-serviceability lookup. Cart storage is cleared only after the order is saved.
-The signed-in `/orders` page only displays orders owned by the current local
-demo user. Cancellation is available for placed, processing, and shipped
-orders; return requests are available only for delivered orders. Both actions
-require a selected reason and update the order's status and reason.
+Order rows are protected by row-level security and scoped to `auth.uid()`.
+Database logic calculates order totals from current catalog and enabled offers;
+customer order updates are restricted to valid cancellation and return
+requests with a selected reason.

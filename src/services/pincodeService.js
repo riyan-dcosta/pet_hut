@@ -1,6 +1,6 @@
-import { serviceablePincodeRanges } from '../data/serviceablePincodes.js'
+import { getSupabaseClient } from './supabaseClient.js'
 
-export function checkPincodeServiceability(pincode) {
+export async function checkPincodeServiceability(pincode) {
   const normalizedPincode = typeof pincode === 'string' ? pincode.trim() : ''
   if (!/^\d{6}$/.test(normalizedPincode)) {
     return {
@@ -12,10 +12,16 @@ export function checkPincodeServiceability(pincode) {
   }
 
   const numericPincode = Number(normalizedPincode)
-  const range = serviceablePincodeRanges.find(
-    ({ startPincode, endPincode }) =>
-      numericPincode >= startPincode && numericPincode <= endPincode,
-  )
+  const { data: range, error } = await getSupabaseClient()
+    .from('serviceable_pincodes')
+    .select('*')
+    .eq('serviceable', true)
+    .lte('start_pincode', numericPincode)
+    .gte('end_pincode', numericPincode)
+    .limit(1)
+    .maybeSingle()
+
+  if (error) throw new Error(`Unable to check delivery availability: ${error.message}`)
 
   if (!range) {
     return {
@@ -26,6 +32,11 @@ export function checkPincodeServiceability(pincode) {
     }
   }
 
+  const deliveryDays = {
+    min: range.delivery_days_min,
+    max: range.delivery_days_max,
+  }
+
   return {
     pincode: normalizedPincode,
     valid: true,
@@ -33,7 +44,7 @@ export function checkPincodeServiceability(pincode) {
     state: range.state,
     city: range.city,
     district: range.district,
-    estimatedDeliveryDays: range.deliveryDays,
-    message: `Delivery available in ${range.city} in ${range.deliveryDays.min}–${range.deliveryDays.max} days.`,
+    estimatedDeliveryDays: deliveryDays,
+    message: `Delivery available in ${range.city} in ${deliveryDays.min}–${deliveryDays.max} days.`,
   }
 }

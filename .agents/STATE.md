@@ -1,26 +1,37 @@
 # Execution State
 
 [Completed Batch]
-Batch 3.4 — Added signed-in order history, cancellation and return reason
-selection with status validation; closed Phase 3.
+Batch 4.1 — Connected the application services to Supabase, added the initial
+schema and RLS policies, and replaced demo OTP with live email/phone OTP.
 
 [Files Modified]
-- `.agents/STATE.md`
-- `.agents/ROADMAP.md`
 - `.agents/ARCHITECTURE.md`
+- `.agents/ROADMAP.md`
+- `.agents/STATE.md`
+- `.env.example`
+- `package.json`
+- `supabase/migrations/20261115000000_initial_schema.sql`
 - `src/App.jsx`
-- `src/pages/OrdersPage.jsx`
-- `src/services/orderService.js`
-- `src/components/Navbar.jsx`
-- `src/components/Footer.jsx`
 - `src/components/AuthDialog.jsx`
+- `src/components/CartDrawer.jsx`
+- `src/components/PincodeChecker.jsx`
+- `src/pages/OrderConfirmationPage.jsx`
+- `src/pages/OrdersPage.jsx`
+- `src/pages/ShopPage.jsx`
+- `src/services/authService.js`
+- `src/services/cartService.js`
+- `src/services/orderService.js`
+- `src/services/pincodeService.js`
+- `src/services/productService.js`
+- `src/services/seasonalOfferService.js`
+- `src/services/supabaseClient.js`
 
 [Current Phase Status]
-Phases 1, 2, and 3 are CLOSED. All batches in Phase 3 are complete. Phase 4
-requires explicit approval before work begins.
+Phases 1, 2, and 3 are CLOSED. Phase 4 is OPEN; Batch 4.1 is complete.
+Aligned the order RPC phone contract with checkout's local/E.164 input formats.
+`git diff --check` passes. The production build could not be run because
+Node.js and npm are unavailable in the environment.
 
 [Exact Next Batch to Execute]
-Wait for explicit approval to start Phase 4. Once approved, execute Batch 4.1 —
-connect the existing services to Supabase or Firebase for product catalog,
-seasonal offers, serviceable pincodes, orders, and live Email/Phone OTP
-authentication. Do not begin Phase 4 until approved.
+Wait for the user's `continue` command, then execute only Batch 4.2 — finish
+backend-managed offer and pincode update workflows and final integration polish.

@@ -12,7 +12,10 @@ import OrderConfirmationPage from './pages/OrderConfirmationPage.jsx'
 import OrdersPage from './pages/OrdersPage.jsx'
 import ShopPage from './pages/ShopPage.jsx'
 import { getCartSummary, loadCart, saveCart } from './services/cartService.js'
-import { getCurrentUser } from './services/authService.js'
+import {
+  getCurrentUser,
+  subscribeToAuthChanges,
+} from './services/authService.js'
 import { placeOrder } from './services/orderService.js'
 import { checkPincodeServiceability } from './services/pincodeService.js'
 
@@ -29,20 +32,86 @@ function StoreLayout() {
   const [cartOpen, setCartOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
   const [continueAfterAuth, setContinueAfterAuth] = useState(false)
-  const [user, setUser] = useState(getCurrentUser)
+  const [user, setUser] = useState(null)
+  const [isAuthLoading, setIsAuthLoading] = useState(true)
+  const [backendError, setBackendError] = useState('')
   const [checkoutMessage, setCheckoutMessage] = useState('')
   const [cartItems, setCartItems] = useState(loadCart)
+  const [cartSummary, setCartSummary] = useState({
+    items: [],
+    subtotalRupees: 0,
+    discountRupees: 0,
+    totalRupees: 0,
+  })
+  const [isCartLoading, setIsCartLoading] = useState(true)
+  const [cartError, setCartError] = useState('')
+  const [cartRetry, setCartRetry] = useState(0)
   const [pincode, setPincode] = useState(
     () => window.localStorage.getItem('pet-hut-pincode') ?? '',
   )
-  const [pincodeResult, setPincodeResult] = useState(() => {
-    const savedPincode = window.localStorage.getItem('pet-hut-pincode')
-    return savedPincode ? checkPincodeServiceability(savedPincode) : null
-  })
+  const [pincodeResult, setPincodeResult] = useState(null)
+  const [isPincodeChecking, setIsPincodeChecking] = useState(false)
+  const [pincodeError, setPincodeError] = useState('')
   const closeCart = useCallback(() => setCartOpen(false), [])
+
+  useEffect(() => {
+    let active = true
+    let unsubscribe
+
+    try {
+      unsubscribe = subscribeToAuthChanges((nextUser) => {
+        if (active) setUser(nextUser)
+      })
+      getCurrentUser()
+        .then((currentUser) => {
+          if (active) {
+            setUser(currentUser)
+            setBackendError('')
+          }
+        })
+        .catch((error) => {
+          if (active) setBackendError(error.message)
+        })
+        .finally(() => {
+          if (active) setIsAuthLoading(false)
+        })
+    } catch (error) {
+      setBackendError(error.message)
+      setIsAuthLoading(false)
+    }
+
+    return () => {
+      active = false
+      unsubscribe?.()
+    }
+  }, [])
+
   useEffect(() => {
     saveCart(cartItems)
   }, [cartItems])
+
+  useEffect(() => {
+    let active = true
+    setIsCartLoading(true)
+    setCartError('')
+    getCartSummary(cartItems)
+      .then((summary) => {
+        if (active) setCartSummary(summary)
+      })
+      .catch((error) => {
+        if (active) {
+          setCartError(error.message)
+        }
+      })
+      .finally(() => {
+        if (active) setIsCartLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [cartItems, cartRetry])
+
   useEffect(() => {
     if (pincode) {
       window.localStorage.setItem('pet-hut-pincode', pincode)
@@ -50,12 +119,44 @@ function StoreLayout() {
       window.localStorage.removeItem('pet-hut-pincode')
     }
   }, [pincode])
+
+  useEffect(() => {
+    if (!pincode) return undefined
+
+    let active = true
+    setIsPincodeChecking(true)
+    checkPincodeServiceability(pincode)
+      .then((result) => {
+        if (active) setPincodeResult(result)
+      })
+      .catch((error) => {
+        if (active) setPincodeError(error.message)
+      })
+      .finally(() => {
+        if (active) setIsPincodeChecking(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
   const handlePincodeChange = useCallback((value) => {
     setPincode(value)
     setPincodeResult(null)
+    setPincodeError('')
   }, [])
-  const handlePincodeCheck = useCallback(() => {
-    setPincodeResult(checkPincodeServiceability(pincode))
+  const handlePincodeCheck = useCallback(async () => {
+    setIsPincodeChecking(true)
+    setPincodeError('')
+    try {
+      setPincodeResult(await checkPincodeServiceability(pincode))
+    } catch (error) {
+      setPincodeResult(null)
+      setPincodeError(error.message)
+    } finally {
+      setIsPincodeChecking(false)
+    }
   }, [pincode])
 
   const addToCart = useCallback((product) => {
@@ -83,10 +184,17 @@ function StoreLayout() {
         .filter((item) => item.quantity > 0),
     )
   }, [])
-  const cartSummary = getCartSummary(cartItems)
-  const canCheckout = Boolean(pincodeResult?.serviceable && cartItems.length > 0)
+  const canCheckout = Boolean(
+    pincodeResult?.serviceable &&
+      pincodeResult.pincode === pincode.trim() &&
+      cartItems.length > 0 &&
+      !isCartLoading &&
+      !cartError &&
+      !cartSummary.items.some((item) => item.unavailable) &&
+      !isAuthLoading,
+  )
   const handleCheckout = useCallback(() => {
-    if (!pincodeResult?.serviceable) {
+    if (!pincodeResult?.serviceable || pincodeResult.pincode !== pincode.trim()) {
       setCheckoutMessage('Check a serviceable Karnataka pincode before checkout.')
       return
     }
@@ -98,7 +206,7 @@ function StoreLayout() {
     }
     setContinueAfterAuth(true)
     setAuthOpen(true)
-  }, [navigate, pincodeResult, user])
+  }, [navigate, pincode, pincodeResult, user])
   const handleAuthenticated = useCallback((signedInUser) => {
     setUser(signedInUser)
     setAuthOpen(false)
@@ -128,6 +236,11 @@ function StoreLayout() {
         cartCount={cartCount}
         isAuthenticated={Boolean(user)}
       />
+      {backendError && (
+        <p className="bg-rose-50 px-5 py-3 text-center text-sm text-rose-800" role="alert">
+          {backendError}
+        </p>
+      )}
       <main className="flex-1">
         <Routes>
           <Route
@@ -148,13 +261,22 @@ function StoreLayout() {
                 pincodeResult={pincodeResult}
                 onPincodeChange={handlePincodeChange}
                 onPincodeCheck={handlePincodeCheck}
+                isPincodeChecking={isPincodeChecking}
+                pincodeError={pincodeError}
               />
             }
           />
           <Route
             path="/checkout"
             element={
-              user && cartItems.length > 0 ? (
+              isAuthLoading || isCartLoading ? (
+                <p className="mx-auto max-w-2xl px-5 py-20 text-center text-stone-600" role="status">
+                  Preparing your checkout…
+                </p>
+              ) : user &&
+                cartItems.length > 0 &&
+                !cartError &&
+                !cartSummary.items.some((item) => item.unavailable) ? (
                 <CheckoutPage
                   user={user}
                   pincodeResult={pincodeResult}
@@ -171,12 +293,26 @@ function StoreLayout() {
           />
           <Route
             path="/orders"
-            element={user ? <OrdersPage user={user} /> : <Navigate to="/" replace />}
+            element={
+              isAuthLoading ? (
+                <p className="mx-auto max-w-2xl px-5 py-20 text-center text-stone-600" role="status">
+                  Loading your account…
+                </p>
+              ) : user ? (
+                <OrdersPage user={user} />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
           />
           <Route
             path="/orders/:orderId/confirmation"
             element={
-              user ? (
+              isAuthLoading ? (
+                <p className="mx-auto max-w-2xl px-5 py-20 text-center text-stone-600" role="status">
+                  Loading your account…
+                </p>
+              ) : user ? (
                 <OrderConfirmationPage user={user} />
               ) : (
                 <Navigate to="/" replace />
@@ -194,6 +330,13 @@ function StoreLayout() {
         pincodeResult={pincodeResult}
         onPincodeChange={handlePincodeChange}
         onPincodeCheck={handlePincodeCheck}
+        isPincodeChecking={isPincodeChecking}
+        pincodeError={pincodeError}
+        cartError={cartError}
+        isCartLoading={isCartLoading}
+        cartCount={cartCount}
+        onRetryCart={() => setCartRetry((current) => current + 1)}
+        onClearCart={() => setCartItems([])}
         canCheckout={canCheckout}
         checkoutMessage={checkoutMessage}
         onCheckout={handleCheckout}
