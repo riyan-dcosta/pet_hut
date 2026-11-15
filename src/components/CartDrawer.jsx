@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Minus, Plus, X } from 'lucide-react'
+import PincodeChecker from './PincodeChecker.jsx'
 
 const currency = new Intl.NumberFormat('en-IN', {
   style: 'currency',
@@ -16,6 +17,10 @@ export default function CartDrawer({
   subtotalRupees = 0,
   discountRupees = 0,
   totalRupees = 0,
+  pincode,
+  pincodeResult,
+  onPincodeChange,
+  onPincodeCheck,
 }) {
   useEffect(() => {
     if (!isOpen) return undefined
@@ -53,6 +58,15 @@ export default function CartDrawer({
           <button type="button" onClick={onClose} aria-label="Close cart" className="text-stone-500 hover:text-stone-900">
             <X size={21} />
           </button>
+        </div>
+        <div className="border-b border-stone-200 px-5 py-4">
+          <PincodeChecker
+            id="cart-pincode"
+            pincode={pincode}
+            result={pincodeResult}
+            onPincodeChange={onPincodeChange}
+            onCheck={onPincodeCheck}
+          />
         </div>
         {items.length > 0 ? (
           <div className="flex-1 overflow-y-auto px-6 py-5">

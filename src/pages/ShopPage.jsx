@@ -4,6 +4,7 @@ import {
   getActiveSeasonalOffers,
   getSeasonalPrice,
 } from '../services/seasonalOfferService.js'
+import PincodeChecker from '../components/PincodeChecker.jsx'
 
 const categories = [
   { id: 'all', label: 'All' },
@@ -19,7 +20,13 @@ const currency = new Intl.NumberFormat('en-IN', {
   maximumFractionDigits: 2,
 })
 
-export default function ShopPage({ onAddToCart }) {
+export default function ShopPage({
+  onAddToCart,
+  pincode,
+  pincodeResult,
+  onPincodeChange,
+  onPincodeCheck,
+}) {
   const [category, setCategory] = useState('all')
   const products = getProducts(category === 'all' ? {} : { category })
   const offers = getActiveSeasonalOffers()
@@ -50,6 +57,16 @@ export default function ShopPage({ onAddToCart }) {
           ))}
         </div>
       )}
+
+      <div className="mt-6 max-w-xl">
+        <PincodeChecker
+          id="shop-pincode"
+          pincode={pincode}
+          result={pincodeResult}
+          onPincodeChange={onPincodeChange}
+          onCheck={onPincodeCheck}
+        />
+      </div>
 
       <div className="mt-10 flex gap-2 overflow-x-auto pb-2" aria-label="Product categories">
         {categories.map((item) => {

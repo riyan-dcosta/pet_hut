@@ -1,9 +1,8 @@
 # Execution State
 
 [Completed Batch]
-Batch 2.3 — Added localStorage-backed cart persistence, quantity controls,
-current seasonal discount calculations, and rupee subtotal/total display;
-closed Phase 2.
+Batch 3.1 — Added a shared Karnataka pincode checker to Shop and Cart with
+serviceability feedback, estimated delivery windows, and saved pincode state.
 
 [Files Modified]
 - `.agents/STATE.md`
@@ -12,13 +11,15 @@ closed Phase 2.
 - `src/App.jsx`
 - `src/pages/ShopPage.jsx`
 - `src/components/CartDrawer.jsx`
-- `src/services/cartService.js`
+- `src/components/PincodeChecker.jsx`
+- `src/data/serviceablePincodes.js`
+- `src/services/pincodeService.js`
 
 [Current Phase Status]
-Phases 1 and 2 are CLOSED. All batches in both phases are complete. Phase 3
-requires explicit approval before work begins.
+Phases 1 and 2 are CLOSED. Phase 3 is OPEN. Batch 3.1 is complete; batches
+3.2–3.4 remain.
 
 [Exact Next Batch to Execute]
-Wait for explicit approval to start Phase 3. Once approved, execute Batch 3.1 —
-add the Karnataka pincode serviceability widget and lookup, including delivery
-availability and estimated days.
+Batch 3.2 — Add a checkout authentication gate: guest users can browse and
+build a cart, and checkout prompts phone or email sign-in with OTP/Magic Link
+while preserving the cart.

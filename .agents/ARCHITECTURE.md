@@ -11,6 +11,9 @@
   navigation and authentication redirects.
 - `src/services/cartService.js`: Validates persisted cart entries, derives
   current product and seasonal prices, and calculates rupee subtotals.
+- `src/services/pincodeService.js`: Checks six-digit pincodes against the
+  local Karnataka serviceability sample; Batch 4.1 replaces this lookup with
+  backend data.
 
 ## Data schemas
 
@@ -75,14 +78,18 @@ the cart is displayed.
 
 ```text
 ServiceablePincode {
-  pincode: string
+  startPincode: integer
+  endPincode: integer
   state: "Karnataka"
   city: string
   district: string
-  serviceable: boolean
-  estimatedDeliveryDays: integer | null
+  estimatedDeliveryDays: { min: integer, max: integer }
 }
 ```
+
+`src/data/serviceablePincodes.js` currently contains bounded sample ranges for
+Bengaluru, Mysuru, Mangaluru, and Hubballi; these are mock records and must be
+replaced with verified serviceability data before production use.
 
 ### Order
 

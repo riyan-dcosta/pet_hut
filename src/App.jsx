@@ -3,10 +3,12 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import CartDrawer from './components/CartDrawer.jsx'
 import Footer from './components/Footer.jsx'
 import Navbar from './components/Navbar.jsx'
+import PincodeChecker from './components/PincodeChecker.jsx'
 import PetShowcase from './components/PetShowcase.jsx'
 import Testimonials from './components/Testimonials.jsx'
 import ShopPage from './pages/ShopPage.jsx'
 import { getCartSummary, loadCart, saveCart } from './services/cartService.js'
+import { checkPincodeServiceability } from './services/pincodeService.js'
 
 export default function App() {
   return (
@@ -19,10 +21,28 @@ export default function App() {
 function StoreLayout() {
   const [cartOpen, setCartOpen] = useState(false)
   const [cartItems, setCartItems] = useState(loadCart)
+  const [pincode, setPincode] = useState(
+    () => window.localStorage.getItem('pet-hut-pincode') ?? '',
+  )
+  const [pincodeResult, setPincodeResult] = useState(null)
   const closeCart = useCallback(() => setCartOpen(false), [])
   useEffect(() => {
     saveCart(cartItems)
   }, [cartItems])
+  useEffect(() => {
+    if (pincode) {
+      window.localStorage.setItem('pet-hut-pincode', pincode)
+    } else {
+      window.localStorage.removeItem('pet-hut-pincode')
+    }
+  }, [pincode])
+  const handlePincodeChange = useCallback((value) => {
+    setPincode(value)
+    setPincodeResult(null)
+  }, [])
+  const handlePincodeCheck = useCallback(() => {
+    setPincodeResult(checkPincodeServiceability(pincode))
+  }, [pincode])
 
   const addToCart = useCallback((product) => {
     setCartItems((items) => {
@@ -65,7 +85,18 @@ function StoreLayout() {
               </>
             }
           />
-          <Route path="/shop" element={<ShopPage onAddToCart={addToCart} />} />
+          <Route
+            path="/shop"
+            element={
+              <ShopPage
+                onAddToCart={addToCart}
+                pincode={pincode}
+                pincodeResult={pincodeResult}
+                onPincodeChange={handlePincodeChange}
+                onPincodeCheck={handlePincodeCheck}
+              />
+            }
+          />
         </Routes>
       </main>
       <Footer />
@@ -73,6 +104,10 @@ function StoreLayout() {
         isOpen={cartOpen}
         onClose={closeCart}
         onQuantityChange={updateCartQuantity}
+        pincode={pincode}
+        pincodeResult={pincodeResult}
+        onPincodeChange={handlePincodeChange}
+        onPincodeCheck={handlePincodeCheck}
         {...cartSummary}
       />
     </div>
