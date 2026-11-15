@@ -18,8 +18,9 @@
   flow and persists the demo sign-in state; Batch 4.1 replaces it with real
   email/phone authentication.
 - `src/services/orderService.js`: Validates the signed-in user, cart, address,
-  and serviceable pincode before persisting a local order; Batch 4.1 replaces
-  local order storage with backend persistence.
+  and serviceable pincode before persisting a local order; also enforces
+  cancellation and return status transitions. Batch 4.1 replaces local order
+  storage with backend persistence.
 
 ## Data schemas
 
@@ -146,3 +147,7 @@ Order {
 Orders are stored in the browser under `pet-hut-orders`. Order placement
 revalidates the pincode and requires its city and district to match the
 serviceability lookup. Cart storage is cleared only after the order is saved.
+The signed-in `/orders` page only displays orders owned by the current local
+demo user. Cancellation is available for placed, processing, and shipped
+orders; return requests are available only for delivered orders. Both actions
+require a selected reason and update the order's status and reason.

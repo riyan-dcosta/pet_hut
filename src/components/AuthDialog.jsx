@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { X } from 'lucide-react'
 import { requestDemoOtp, signOut, verifyDemoOtp } from '../services/authService.js'
 
@@ -84,10 +85,17 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
               Signed in with {user.identifier}. Your cart stays saved. Open your cart to continue
               checkout.
             </p>
+            <Link
+              to="/orders"
+              onClick={onClose}
+              className="mt-5 inline-block text-sm font-medium text-stone-800 underline underline-offset-4"
+            >
+              View your orders
+            </Link>
             <button
               type="button"
               onClick={handleSignOut}
-              className="mt-6 text-sm text-stone-600 underline underline-offset-4 hover:text-stone-900"
+              className="ml-5 mt-6 text-sm text-stone-600 underline underline-offset-4 hover:text-stone-900"
             >
               Sign out
             </button>

@@ -3,6 +3,21 @@ import { checkPincodeServiceability } from './pincodeService.js'
 
 const ORDERS_STORAGE_KEY = 'pet-hut-orders'
 
+export const orderRequestReasons = {
+  cancel: [
+    'Ordered by mistake',
+    'Delivery taking too long',
+    'Found a better option',
+    'Other',
+  ],
+  return: [
+    'Item arrived damaged',
+    'Wrong item received',
+    'Pet did not accept the product',
+    'Other',
+  ],
+}
+
 function readOrders() {
   const savedOrders = window.localStorage.getItem(ORDERS_STORAGE_KEY)
   if (savedOrders === null) return []
@@ -88,4 +103,55 @@ export function placeOrder({ user, cartItems, address, pincodeResult }) {
 
 export function getOrderById(orderId) {
   return readOrders().find((order) => order.id === orderId) ?? null
+}
+
+export function getOrdersByUser(userId) {
+  return readOrders()
+    .filter((order) => order.userId === userId)
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+}
+
+export function updateOrderRequest({ orderId, userId, action, reason }) {
+  const selectedReason = typeof reason === 'string' ? reason.trim() : ''
+  if (!selectedReason) {
+    throw new Error('Select a reason before submitting your request.')
+  }
+  if (action !== 'cancel' && action !== 'return') {
+    throw new Error('Choose a valid order action.')
+  }
+  if (!orderRequestReasons[action].includes(selectedReason)) {
+    throw new Error('Select one of the listed reasons.')
+  }
+
+  const orders = readOrders()
+  const orderIndex = orders.findIndex(
+    (order) => order.id === orderId && order.userId === userId,
+  )
+  if (orderIndex === -1) {
+    throw new Error('This order was not found for your account.')
+  }
+
+  const order = orders[orderIndex]
+  if (action === 'cancel') {
+    if (!['placed', 'processing', 'shipped'].includes(order.status)) {
+      throw new Error('Only active orders can be cancelled.')
+    }
+    orders[orderIndex] = {
+      ...order,
+      status: 'cancelled',
+      cancellationReason: selectedReason,
+    }
+  } else {
+    if (order.status !== 'delivered') {
+      throw new Error('Only delivered orders can be returned.')
+    }
+    orders[orderIndex] = {
+      ...order,
+      status: 'return_requested',
+      returnReason: selectedReason,
+    }
+  }
+
+  window.localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders))
+  return orders[orderIndex]
 }

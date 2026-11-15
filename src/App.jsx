@@ -9,6 +9,7 @@ import PetShowcase from './components/PetShowcase.jsx'
 import Testimonials from './components/Testimonials.jsx'
 import CheckoutPage from './pages/CheckoutPage.jsx'
 import OrderConfirmationPage from './pages/OrderConfirmationPage.jsx'
+import OrdersPage from './pages/OrdersPage.jsx'
 import ShopPage from './pages/ShopPage.jsx'
 import { getCartSummary, loadCart, saveCart } from './services/cartService.js'
 import { getCurrentUser } from './services/authService.js'
@@ -121,6 +122,7 @@ function StoreLayout() {
         onCartClick={() => setCartOpen(true)}
         onSignInClick={() => setAuthOpen(true)}
         cartCount={cartCount}
+        isAuthenticated={Boolean(user)}
       />
       <main className="flex-1">
         <Routes>
@@ -163,10 +165,14 @@ function StoreLayout() {
               )
             }
           />
+          <Route
+            path="/orders"
+            element={user ? <OrdersPage user={user} /> : <Navigate to="/" replace />}
+          />
           <Route path="/orders/:orderId/confirmation" element={<OrderConfirmationPage />} />
         </Routes>
       </main>
-      <Footer onSignInClick={() => setAuthOpen(true)} />
+      <Footer onSignInClick={() => setAuthOpen(true)} isAuthenticated={Boolean(user)} />
       <CartDrawer
         isOpen={cartOpen}
         onClose={closeCart}

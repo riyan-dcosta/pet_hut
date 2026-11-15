@@ -2,7 +2,12 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Menu, ShoppingBag, X } from 'lucide-react'
 
-export default function Navbar({ onCartClick, onSignInClick, cartCount = 0 }) {
+export default function Navbar({
+  onCartClick,
+  onSignInClick,
+  cartCount = 0,
+  isAuthenticated = false,
+}) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   const closeMenu = () => setMenuOpen(false)
@@ -26,6 +31,11 @@ export default function Navbar({ onCartClick, onSignInClick, cartCount = 0 }) {
           <Link className="text-sm text-stone-600 transition hover:text-stone-950" to="/shop">
             Shop
           </Link>
+          {isAuthenticated && (
+            <Link className="text-sm text-stone-600 transition hover:text-stone-950" to="/orders">
+              Orders
+            </Link>
+          )}
         </nav>
 
         <div className="hidden items-center gap-5 md:flex">
@@ -82,6 +92,11 @@ export default function Navbar({ onCartClick, onSignInClick, cartCount = 0 }) {
           <Link className="block py-3 text-sm text-stone-700" to="/shop" onClick={closeMenu}>
             Shop
           </Link>
+          {isAuthenticated && (
+            <Link className="block py-3 text-sm text-stone-700" to="/orders" onClick={closeMenu}>
+              Orders
+            </Link>
+          )}
           <button
             type="button"
             className="block py-3 text-sm text-stone-700"
