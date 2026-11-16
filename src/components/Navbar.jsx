@@ -1,7 +1,105 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Menu, ShoppingBag, X } from 'lucide-react'
+import { Menu, Monitor, Moon, ShoppingBag, Sun, X } from 'lucide-react'
 import { getAccountLabel } from '../services/authUser.js'
+import { themeController } from '../themeInit.js'
+
+const themeOptions = [
+  { value: 'light', label: 'Light theme', Icon: Sun },
+  { value: 'dark', label: 'Dark theme', Icon: Moon },
+  { value: 'system', label: 'System theme', Icon: Monitor },
+]
+
+function ThemeSelector() {
+  const preference = useSyncExternalStore(themeController.subscribe, themeController.getPreference)
+  const [open, setOpen] = useState(false)
+  const selectorRef = useRef(null)
+  const triggerRef = useRef(null)
+  const menuId = useId()
+  const SelectedIcon = themeOptions.find((option) => option.value === preference).Icon
+
+  useEffect(() => {
+    if (!open) return undefined
+
+    function handlePointerDown(event) {
+      if (!selectorRef.current?.contains(event.target)) setOpen(false)
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setOpen(false)
+        triggerRef.current?.focus()
+      }
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open])
+
+  return (
+    <div
+      ref={selectorRef}
+      className="theme-selector"
+      onPointerEnter={(event) => {
+        if (event.pointerType === 'mouse' && window.matchMedia('(min-width: 768px) and (hover: hover)').matches) {
+          setOpen(true)
+        }
+      }}
+      onPointerLeave={(event) => {
+        if (event.pointerType === 'mouse' && window.matchMedia('(min-width: 768px) and (hover: hover)').matches) {
+          setOpen(false)
+        }
+      }}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
+      }}
+    >
+      <button
+        ref={triggerRef}
+        type="button"
+        className="theme-trigger"
+        aria-label="Choose theme"
+        aria-expanded={open}
+        aria-controls={menuId}
+        onClick={(event) => {
+          if (event.detail > 0 && event.nativeEvent.pointerType !== 'touch' &&
+              window.matchMedia('(min-width: 768px) and (hover: hover)').matches) {
+            setOpen(true)
+          } else {
+            setOpen((current) => !current)
+          }
+        }}
+      >
+        <SelectedIcon size={20} aria-hidden="true" />
+      </button>
+      {open && (
+        <div id={menuId} className="theme-menu" role="group" aria-label="Theme">
+          {themeOptions.map(({ value, label, Icon }) => (
+            <button
+              key={value}
+              type="button"
+              className={`theme-option theme-option-${value}`}
+              aria-label={label}
+              aria-pressed={preference === value}
+              title={label}
+              onClick={() => {
+                themeController.setPreference(value)
+                setOpen(false)
+                triggerRef.current?.focus()
+              }}
+            >
+              <Icon size={17} aria-hidden="true" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function Navbar({
   onCartClick,
@@ -47,6 +145,7 @@ export default function Navbar({
         </nav>
 
         <div className="hidden items-center gap-5 md:flex">
+          <ThemeSelector />
           <button
             type="button"
             onClick={onCartClick}
@@ -69,7 +168,8 @@ export default function Navbar({
           </button>
         </div>
 
-        <div className="flex items-center gap-4 md:hidden">
+        <div className="flex items-center gap-1 sm:gap-4 md:hidden">
+          <ThemeSelector />
           <button
             type="button"
             onClick={onCartClick}
@@ -77,7 +177,7 @@ export default function Navbar({
             aria-label={`Open cart, ${cartCount} items`}
           >
             <ShoppingBag size={20} strokeWidth={1.7} aria-hidden="true" />
-            <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-700 px-1 text-[10px] text-white">
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-700 px-1 text-[10px] text-white">
               {cartCount}
             </span>
           </button>

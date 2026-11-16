@@ -20,6 +20,21 @@
   availability, pincode, and current prices/discounts; database policies only
   expose a user's own orders.
 
+## Themes
+
+The top navigation theme icon reveals light, dark, and system modes on desktop
+hover or mobile tap; it also supports keyboard activation. The selected mode is
+stored as `pet-hut-theme` in browser local storage; system mode follows the
+device color preference, including changes while the page is open. If storage
+is unavailable, the selection works for the current page and a warning is
+logged. `src/themeInit.js` applies the saved mode before the React render.
+
+Theme-aware semantic colors are defined in `src/index.css`. Existing Tailwind
+color utilities are mapped to the dark palette there; use the semantic tokens
+for new UI and ensure any additional colors, interactive states, and status
+messages remain readable in both appearances. Keep icon-only controls named for
+assistive technology and verify layouts on mobile and desktop.
+
 ## Supabase setup
 
 1. Copy `.env.example` to `.env` and set the Supabase project URL and public

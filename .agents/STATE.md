@@ -1,14 +1,18 @@
 # Execution State
 
 [Completed Batch]
-Batch 6.2 — Implementation and mocked checks complete; remaining work deferred
-to Phase TBD at the user's request.
+Phase 7, Batches 7.1–7.4 — Dark, light, and system theme support implemented
+and verified; deferred Phase 6 work remains on hold.
+UI-001 — Resolved mobile cart badge spacing.
 
 [Files Modified]
 - `.env.example`
 - `.agents/ARCHITECTURE.md`
 - `.agents/ROADMAP.md`
 - `.agents/STATE.md`
+- `index.html`
+- `src/index.css`
+- `src/themeInit.js`
 - `src/App.jsx`
 - `src/components/AuthDialog.jsx`
 - `src/components/AccountMethods.jsx`
@@ -20,6 +24,8 @@ to Phase TBD at the user's request.
 - `src/services/authUser.test.js`
 - `src/services/googleAuthFlow.js`
 - `src/services/googleAuthFlow.test.js`
+- `src/services/theme.js`
+- `src/services/theme.test.js`
 
 [Current Phase Status]
 Phases 1–5 are CLOSED. Phase 6 is CLOSED WITH DEFERRED WORK; Batch 6.1 is
@@ -44,6 +50,17 @@ unchanged.
 The user reports receiving a magic link without an OTP. Supabase's hosted
 email template still needs updating to include both `{{ .ConfirmationURL }}`
 and `{{ .Token }}`; the dashboard was not signed in during this session.
+Phase 7 is CLOSED. The top navigation theme icon reveals icon-only light,
+dark, and system choices on desktop hover or mobile tap; the browser saves the
+preference and system mode follows
+device changes. Shared surfaces and page styles use theme-aware colors.
+Theme tests and the production build pass; browser checks covered preference
+persistence, system changes, keyboard focus, home, shop, orders, cart, and
+account dialog at mobile and desktop widths. Checkout was rendered with sample
+props and an existing order confirmation was viewed read-only; no new order
+was placed. An assistive-technology session was not performed. The complete
+service suite has three existing Node environment failures involving
+`import.meta.env`; the focused theme tests pass.
 
 [Local Development]
 Node.js and npm are installed via fnm. Fresh PowerShell sessions may need the

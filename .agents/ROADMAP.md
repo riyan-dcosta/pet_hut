@@ -86,6 +86,43 @@ Supabase automatically links compatible identities by verified matching email;
 phone-only accounts require an explicit signed-in linking flow. An identity
 already attached to another user is a conflict, not an automatic account merge.
 
+## Phase 7: Dark, Light, and System Themes
+
+**Status: CLOSED** — all Phase 7 batches are complete.
+
+Provide a responsive theme selector in the top navigation: hover over the
+theme icon on desktop or tap it on mobile to reveal icon-only options for dark,
+light, and system. Use button backgrounds to distinguish
+the options and visibly identify the selected choice; provide accessible names
+and selected-state semantics without adding visible text labels. Persist the
+selected preference in the browser across reloads and visits. System mode
+follows the device preference, including changes while the app is open.
+
+- [x] Batch 7.1: Add shared theme state and semantic theme tokens; restore the
+  saved preference before the initial render, support system preference
+  changes, and add the responsive, keyboard-accessible navigation selector.
+  Handle unavailable browser storage without breaking the application.
+- [x] Batch 7.2: Apply theme tokens to shared surfaces, including navigation,
+  footer, authentication and account dialogs, cart drawer, and pincode UI.
+  Cover interactive, loading, empty, error, and focus states.
+- [x] Batch 7.3: Theme the home, shop, checkout, orders, and order confirmation
+  pages, including dynamic content and all relevant interaction states. Keep
+  the existing responsive layouts and functionality.
+- [x] Batch 7.4: Verify all three modes across routes and shared surfaces on
+  mobile and desktop. Test persistence, reloads, system preference changes,
+  keyboard and screen-reader access, and readable contrast. Document the
+  theme conventions so future pages and components support both themes.
+
+Verification covered accessible names and keyboard focus, but did not include
+an assistive-technology session or a new live checkout. Checkout was checked
+with sample props and an existing order confirmation was viewed read-only.
+
+Acceptance criteria: All routes and shared UI are readable and usable in
+light and dark appearances; the icon-only selector works at supported widths;
+the chosen dark, light, or system preference persists in the browser; and
+system mode tracks device settings. Future UI uses the shared theme tokens
+and supports both appearances.
+
 ## Phase TBD: On-Hold Work
 
 **Status: ON HOLD** — not part of Phase 6.
