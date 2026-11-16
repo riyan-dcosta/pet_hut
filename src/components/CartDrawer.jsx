@@ -64,21 +64,21 @@ export default function CartDrawer({
         aria-label="Close cart"
       />
       <aside
-        className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-white shadow-xl"
+        className="absolute right-0 top-0 flex h-[100dvh] w-full max-w-md flex-col overscroll-contain bg-white pb-[env(safe-area-inset-bottom)] shadow-xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-title"
       >
-        <div className="flex items-center justify-between border-b border-stone-200 px-6 py-5">
+        <div className="flex min-h-16 shrink-0 items-center justify-between border-b border-stone-200 px-4 py-3 sm:px-6 sm:py-5">
           <h2 id="cart-title" className="text-lg font-medium text-stone-900">
             Your cart
             {cartCount > 0 && ` (${cartCount})`}
           </h2>
-          <button type="button" onClick={onClose} aria-label="Close cart" className="text-stone-500 hover:text-stone-900">
+          <button type="button" onClick={onClose} aria-label="Close cart" className="inline-flex h-11 w-11 items-center justify-center text-stone-500 hover:text-stone-900">
             <X size={21} />
           </button>
         </div>
-        <div className="border-b border-stone-200 px-5 py-4">
+        <div className="shrink-0 border-b border-stone-200 px-3 py-3 sm:px-5 sm:py-4">
           <PincodeChecker
             id="cart-pincode"
             pincode={pincode}
@@ -112,10 +112,10 @@ export default function CartDrawer({
             </button>
           </div>
         ) : items.length > 0 ? (
-          <div className="flex-1 overflow-y-auto px-6 py-5">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
             <ul className="divide-y divide-stone-100">
               {items.map(({ product, quantity, unitPriceRupees, lineTotalRupees, offer, unavailable }) => (
-                <li key={product.id} className="flex gap-4 py-4">
+                <li key={product.id} className="flex min-w-0 gap-3 py-4 sm:gap-4">
                   {product.imageUrl ? (
                     <img
                       src={product.imageUrl}
@@ -126,7 +126,7 @@ export default function CartDrawer({
                     <div className="h-20 w-20 shrink-0 rounded-lg bg-stone-100" aria-hidden="true" />
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-stone-900">{product.name}</p>
+                    <p className="break-words text-sm font-medium text-stone-900">{product.name}</p>
                     <p className={`mt-1 text-sm ${unavailable ? 'text-rose-700' : 'text-stone-500'}`}>
                       {unavailable ? 'No longer available. Remove this item to continue.' : `${currency.format(unitPriceRupees)} each`}
                     </p>
@@ -140,7 +140,7 @@ export default function CartDrawer({
                         type="button"
                         onClick={() => onQuantityChange(product.id, unavailable ? -quantity : -1)}
                         aria-label={unavailable ? `Remove ${product.name}` : `Decrease ${product.name} quantity`}
-                        className="rounded-full p-1 text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full text-stone-600 hover:bg-stone-100 hover:text-stone-900"
                       >
                         <Minus size={14} />
                       </button>
@@ -150,20 +150,20 @@ export default function CartDrawer({
                           type="button"
                           onClick={() => onQuantityChange(product.id, 1)}
                           aria-label={`Increase ${product.name} quantity`}
-                          className="rounded-full p-1 text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-full text-stone-600 hover:bg-stone-100 hover:text-stone-900"
                         >
                           <Plus size={14} />
                         </button>
                       )}
                     </div>
                   </div>
-                  <p className="shrink-0 text-sm font-medium text-stone-900">
+                  <p className="max-w-[5rem] shrink-0 break-words text-right text-sm font-medium text-stone-900">
                     {currency.format(lineTotalRupees)}
                   </p>
                 </li>
               ))}
             </ul>
-            <div className="mt-5 border-t border-stone-200 pt-5">
+            <div className="sticky bottom-0 z-10 -mx-4 mt-5 border-t border-stone-200 bg-white/95 px-4 pb-2 pt-4 backdrop-blur sm:-mx-6 sm:px-6">
               <dl className="space-y-3 text-sm">
                 <div className="flex justify-between text-stone-600">
                   <dt>Subtotal</dt>

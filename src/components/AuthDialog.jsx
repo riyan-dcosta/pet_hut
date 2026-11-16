@@ -105,7 +105,7 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center p-2 sm:items-center sm:p-4">
       <button
         type="button"
         className="absolute inset-0 h-full w-full cursor-default bg-stone-950/40"
@@ -114,7 +114,7 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
       />
       <section
         ref={dialogRef}
-        className="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl sm:p-8"
+        className="relative z-10 max-h-[calc(100dvh-1rem)] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-h-[calc(100dvh-2rem)] sm:p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-title"

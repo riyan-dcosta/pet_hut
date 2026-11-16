@@ -63,7 +63,7 @@ export default function CheckoutPage({
   )
 
   return (
-    <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16">
+    <div className="mx-auto max-w-7xl px-4 py-9 sm:px-8 sm:py-16">
       <header className="mb-8">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-800">
           Almost home
@@ -73,10 +73,10 @@ export default function CheckoutPage({
         </h1>
       </header>
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-12">
+      <div className="grid min-w-0 gap-5 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-12">
         <form
           onSubmit={submitOrder}
-          className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-8"
+          className="min-w-0 rounded-2xl border border-stone-200 bg-white p-4 sm:p-8"
         >
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="text-sm font-medium text-stone-800 sm:col-span-2">
@@ -87,7 +87,7 @@ export default function CheckoutPage({
                 required
                 value={address.name}
                 onChange={updateField}
-                className="mt-2 w-full rounded-xl border border-stone-300 px-4 py-3 font-normal outline-none focus:border-emerald-800 focus:ring-1 focus:ring-emerald-800"
+                className="mt-2 min-h-11 w-full rounded-xl border border-stone-300 px-4 py-3 font-normal outline-none focus:border-emerald-800 focus:ring-1 focus:ring-emerald-800"
               />
             </label>
             <label className="text-sm font-medium text-stone-800 sm:col-span-2">
@@ -101,7 +101,7 @@ export default function CheckoutPage({
                 value={address.phone}
                 onChange={updateField}
                 placeholder="98765 43210"
-                className="mt-2 w-full rounded-xl border border-stone-300 px-4 py-3 font-normal outline-none focus:border-emerald-800 focus:ring-1 focus:ring-emerald-800"
+                className="mt-2 min-h-11 w-full rounded-xl border border-stone-300 px-4 py-3 font-normal outline-none focus:border-emerald-800 focus:ring-1 focus:ring-emerald-800"
               />
             </label>
             <label className="text-sm font-medium text-stone-800 sm:col-span-2">
@@ -124,7 +124,7 @@ export default function CheckoutPage({
                 required
                 value={address.city}
                 onChange={updateField}
-                className="mt-2 w-full rounded-xl border border-stone-300 px-4 py-3 font-normal outline-none focus:border-emerald-800 focus:ring-1 focus:ring-emerald-800"
+                className="mt-2 min-h-11 w-full rounded-xl border border-stone-300 px-4 py-3 font-normal outline-none focus:border-emerald-800 focus:ring-1 focus:ring-emerald-800"
               />
             </label>
             <label className="text-sm font-medium text-stone-800">
@@ -135,7 +135,7 @@ export default function CheckoutPage({
                 required
                 value={address.district}
                 onChange={updateField}
-                className="mt-2 w-full rounded-xl border border-stone-300 px-4 py-3 font-normal outline-none focus:border-emerald-800 focus:ring-1 focus:ring-emerald-800"
+                className="mt-2 min-h-11 w-full rounded-xl border border-stone-300 px-4 py-3 font-normal outline-none focus:border-emerald-800 focus:ring-1 focus:ring-emerald-800"
               />
             </label>
             <div className="sm:col-span-2">
@@ -149,7 +149,7 @@ export default function CheckoutPage({
                   readOnly
                   value={address.pincode}
                   required
-                  className="w-full max-w-xs rounded-xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-700"
+                  className="min-h-11 w-full max-w-xs rounded-xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm text-stone-700"
                 />
                 <span
                   className={`text-sm ${serviceable ? 'text-emerald-800' : 'text-rose-700'}`}
@@ -159,7 +159,7 @@ export default function CheckoutPage({
                     ? `Verified · ${pincodeResult.estimatedDeliveryDays.min}–${pincodeResult.estimatedDeliveryDays.max} days`
                     : 'A serviceable pincode is required'}
                 </span>
-                <Link to="/shop" className="text-sm text-stone-600 underline underline-offset-4">
+                <Link to="/shop" className="inline-flex min-h-11 items-center text-sm text-stone-600 underline underline-offset-4">
                   Change pincode
                 </Link>
               </div>
@@ -172,29 +172,29 @@ export default function CheckoutPage({
             </p>
           )}
 
-          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-stone-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
-            <Link to="/shop" className="text-center text-sm text-stone-600 hover:text-stone-900">
+          <div className="mt-6 flex flex-col-reverse gap-3 border-t border-stone-200 pt-5 sm:mt-8 sm:flex-row sm:items-center sm:justify-between sm:pt-6">
+            <Link to="/shop" className="inline-flex min-h-11 items-center justify-center text-sm text-stone-600 hover:text-stone-900">
               Return to shop
             </Link>
             <button
               type="submit"
               disabled={!serviceable || cartItems.length === 0 || isSubmitting}
-              className="rounded-full bg-stone-900 px-6 py-3 text-sm font-medium text-white hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-300"
+              className="min-h-11 w-full rounded-full bg-stone-900 px-6 py-3 text-sm font-medium text-white hover:bg-stone-700 disabled:cursor-not-allowed disabled:bg-stone-300 sm:w-auto"
             >
               Place order
             </button>
           </div>
         </form>
 
-        <aside className="h-fit rounded-2xl border border-stone-200 bg-white p-5 sm:p-6">
+        <aside className="h-fit min-w-0 rounded-2xl border border-stone-200 bg-white p-4 sm:p-6 lg:sticky lg:top-24">
           <h2 className="text-lg font-medium text-stone-900">Order summary</h2>
           <ul className="mt-4 space-y-3">
             {cartItems.map((item) => (
-              <li key={item.product.id} className="flex justify-between gap-3 text-sm">
-                <span className="text-stone-600">
+              <li key={item.product.id} className="flex min-w-0 justify-between gap-3 text-sm">
+                <span className="min-w-0 break-words text-stone-600">
                   {item.product.name} × {item.quantity}
                 </span>
-                <span className="shrink-0 text-stone-900">
+                <span className="shrink-0 text-right text-stone-900">
                   {currency.format(item.lineTotalRupees)}
                 </span>
               </li>

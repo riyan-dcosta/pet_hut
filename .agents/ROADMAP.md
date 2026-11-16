@@ -40,25 +40,52 @@ browsing.
 
 **Status: CLOSED** — all Phase 4 batches are complete.
 
-## Phase 5: New Additions — Google Auth and Account Linking
+## Phase 5: Mobile-First Responsive UI
 
-**Status: PLANNED** — begins after Phase 4 is complete.
+**Status: CLOSED** — all Phase 5 batches are complete.
 
-- [ ] Batch 5.1: Configure Google OAuth with Supabase; document provider setup,
+Make every route and shared application surface work as a dynamic, responsive
+experience on mobile, tablet, and desktop. Preserve Supabase-backed content and
+provide clear loading, empty, and error states instead of adding mock data.
+
+- [x] Batch 5.1: Audit responsive foundations and update the shared shell:
+  navigation, footer, authentication dialog, cart drawer, and pincode controls.
+- [x] Batch 5.2: Polish the home and shop views for small screens, including
+  hero and testimonial layouts, category controls, dynamic product cards,
+  active offers, and delivery-check states.
+- [x] Batch 5.3: Make cart and checkout interactions comfortable on mobile,
+  including quantity controls, delivery details, order summary, validation,
+  and submission states.
+- [x] Batch 5.4: Make order history and order confirmation responsive, covering
+  dynamic loading, empty, error, and action states.
+- [x] Batch 5.5: Verify all routes and shared surfaces at narrow mobile,
+  tablet, and desktop widths; fix horizontal overflow, inaccessible controls,
+  and layout regressions.
+
+Acceptance criteria: Home, shop, checkout, orders, and order confirmation,
+along with shared navigation, footer, authentication, cart, and pincode UI,
+adapt without horizontal overflow at common mobile widths; dynamic data and
+loading/empty/error states remain usable at every supported width.
+
+## Phase 6: New Additions — Google Auth and Account Linking
+
+**Status: PLANNED** — begins after Phase 5 is complete.
+
+- [ ] Batch 6.1: Configure Google OAuth with Supabase; document provider setup,
   allowed redirect URLs, and local/production configuration. Add Google sign-in
   and callback/session handling while preserving email and phone OTP, the cart,
   and checkout.
-- [ ] Batch 5.2: Let signed-in email-only or phone-only users explicitly link a
+- [ ] Batch 6.2: Let signed-in email-only or phone-only users explicitly link a
   Google identity, and let Google users add verified email and phone sign-in
   methods. Enable Supabase manual identity linking and show linked methods,
   progress, cancellation, and errors without exposing sensitive credentials.
-- [ ] Batch 5.3: Address existing separately created accounts and identity
+- [ ] Batch 6.3: Address existing separately created accounts and identity
   conflicts: design and implement a secure recovery/merge flow only after
   verifying ownership of both accounts. Preserve order history and other
   account data, enforce authorization, handle conflicts without data loss,
   and provide a safe resolution when an identity is already linked elsewhere.
   Never merge accounts based solely on a claimed email or phone number.
-- [ ] Batch 5.4: Test and document Google sign-in, verified-email automatic
+- [ ] Batch 6.4: Test and document Google sign-in, verified-email automatic
   linking, explicit linking for phone-only and email-only accounts, adding
   verified contact methods, separate-account conflicts, session restoration,
   checkout, and order access. Cover rejected, interrupted, and repeated flows

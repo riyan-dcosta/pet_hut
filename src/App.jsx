@@ -270,7 +270,7 @@ function StoreLayout() {
             path="/checkout"
             element={
               isAuthLoading || isCartLoading ? (
-                <p className="mx-auto max-w-2xl px-5 py-20 text-center text-stone-600" role="status">
+                <p className="mx-auto max-w-2xl px-4 py-12 text-center text-stone-600 sm:px-5 sm:py-20" role="status">
                   Preparing your checkout…
                 </p>
               ) : user &&
@@ -295,7 +295,7 @@ function StoreLayout() {
             path="/orders"
             element={
               isAuthLoading ? (
-                <p className="mx-auto max-w-2xl px-5 py-20 text-center text-stone-600" role="status">
+                <p className="mx-auto max-w-2xl px-4 py-12 text-center text-stone-600 sm:px-5 sm:py-20" role="status">
                   Loading your account…
                 </p>
               ) : user ? (
@@ -309,7 +309,7 @@ function StoreLayout() {
             path="/orders/:orderId/confirmation"
             element={
               isAuthLoading ? (
-                <p className="mx-auto max-w-2xl px-5 py-20 text-center text-stone-600" role="status">
+                <p className="mx-auto max-w-2xl px-4 py-12 text-center text-stone-600 sm:px-5 sm:py-20" role="status">
                   Loading your account…
                 </p>
               ) : user ? (

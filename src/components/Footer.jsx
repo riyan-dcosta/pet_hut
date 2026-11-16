@@ -10,16 +10,16 @@ export default function Footer({ onSignInClick, isAuthenticated = false }) {
           </Link>
           <p className="mt-1 text-sm text-stone-500">Thoughtful essentials for pets across Karnataka.</p>
         </div>
-        <nav className="flex gap-6 text-sm text-stone-600" aria-label="Footer navigation">
-          <Link className="transition hover:text-stone-950" to="/">Home</Link>
-          <Link className="transition hover:text-stone-950" to="/shop">Shop</Link>
-          {isAuthenticated && <Link className="transition hover:text-stone-950" to="/orders">Orders</Link>}
+        <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-stone-600" aria-label="Footer navigation">
+          <Link className="inline-flex min-h-11 items-center transition hover:text-stone-950" to="/">Home</Link>
+          <Link className="inline-flex min-h-11 items-center transition hover:text-stone-950" to="/shop">Shop</Link>
+          {isAuthenticated && <Link className="inline-flex min-h-11 items-center transition hover:text-stone-950" to="/orders">Orders</Link>}
           <button
             type="button"
-            className="transition hover:text-stone-950"
+            className="inline-flex min-h-11 items-center transition hover:text-stone-950"
             onClick={onSignInClick}
           >
-            Sign in
+            {isAuthenticated ? 'Account' : 'Sign in'}
           </button>
         </nav>
         <p className="text-xs text-stone-400">© {new Date().getFullYear()} Pet Hut</p>

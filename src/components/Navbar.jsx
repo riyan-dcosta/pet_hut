@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { Menu, ShoppingBag, X } from 'lucide-react'
 
 export default function Navbar({
@@ -9,12 +9,17 @@ export default function Navbar({
   isAuthenticated = false,
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const { pathname } = useLocation()
 
   const closeMenu = () => setMenuOpen(false)
 
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [pathname])
+
   return (
     <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-8">
         <Link
           to="/"
           onClick={closeMenu}
@@ -64,7 +69,7 @@ export default function Navbar({
           <button
             type="button"
             onClick={onCartClick}
-            className="relative text-stone-700"
+            className="relative inline-flex h-11 w-11 items-center justify-center text-stone-700"
             aria-label={`Open cart, ${cartCount} items`}
           >
             <ShoppingBag size={20} strokeWidth={1.7} aria-hidden="true" />
@@ -74,9 +79,10 @@ export default function Navbar({
           </button>
           <button
             type="button"
-            className="text-stone-700"
+            className="inline-flex h-11 w-11 items-center justify-center text-stone-700"
             onClick={() => setMenuOpen((open) => !open)}
             aria-expanded={menuOpen}
+            aria-controls="mobile-navigation"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           >
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -85,27 +91,31 @@ export default function Navbar({
       </div>
 
       {menuOpen && (
-        <nav className="border-t border-stone-100 px-5 py-4 md:hidden" aria-label="Mobile navigation">
-          <Link className="block py-3 text-sm text-stone-700" to="/" onClick={closeMenu}>
+        <nav
+          id="mobile-navigation"
+          className="border-t border-stone-100 px-4 py-3 md:hidden sm:px-8"
+          aria-label="Mobile navigation"
+        >
+          <Link className="flex min-h-11 items-center text-sm text-stone-700" to="/" onClick={closeMenu}>
             Home
           </Link>
-          <Link className="block py-3 text-sm text-stone-700" to="/shop" onClick={closeMenu}>
+          <Link className="flex min-h-11 items-center text-sm text-stone-700" to="/shop" onClick={closeMenu}>
             Shop
           </Link>
           {isAuthenticated && (
-            <Link className="block py-3 text-sm text-stone-700" to="/orders" onClick={closeMenu}>
+            <Link className="flex min-h-11 items-center text-sm text-stone-700" to="/orders" onClick={closeMenu}>
               Orders
             </Link>
           )}
           <button
             type="button"
-            className="block py-3 text-sm text-stone-700"
+            className="flex min-h-11 items-center text-sm text-stone-700"
             onClick={() => {
               closeMenu()
               onSignInClick()
             }}
           >
-            Sign in
+            {isAuthenticated ? 'Account' : 'Sign in'}
           </button>
         </nav>
       )}
