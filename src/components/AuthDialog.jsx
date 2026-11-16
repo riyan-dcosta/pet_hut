@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { X } from 'lucide-react'
-import { requestOtp, signOut, verifyOtp } from '../services/authService.js'
+import AccountMethods from './AccountMethods.jsx'
+import { requestOtp, signInWithGoogle, signOut, verifyOtp } from '../services/authService.js'
 
-export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onSignedOut }) {
+export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onSignedOut, onUserUpdate, accountNotice, continueAfterAuth }) {
   const [method, setMethod] = useState('phone')
   const [identifier, setIdentifier] = useState('')
   const [code, setCode] = useState('')
@@ -104,6 +105,17 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
     }
   }
 
+  const handleGoogleSignIn = async () => {
+    setError('')
+    setIsSubmitting(true)
+    try {
+      await signInWithGoogle(continueAfterAuth)
+    } catch (signInError) {
+      setError(signInError.message)
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center p-2 sm:items-center sm:p-4">
       <button
@@ -138,7 +150,7 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
               Welcome, pet parent.
             </h2>
             <p className="mt-3 text-sm leading-6 text-stone-600">
-              Signed in with {user.identifier}. Your cart stays saved. Open your cart to continue
+              Account: {user.identifier}. Your cart stays saved. Open your cart to continue
               checkout.
             </p>
             <Link
@@ -156,6 +168,7 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
             >
               Sign out
             </button>
+            <AccountMethods user={user} onUserUpdate={onUserUpdate} notice={accountNotice} />
           </>
         ) : (
           <>
@@ -166,10 +179,20 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
               Your cart is saved.
             </h2>
             <p className="mt-3 text-sm leading-6 text-stone-600">
-              Sign in to continue. A one-time code will be sent to your email or phone.
+              Continue with Google or use a one-time code sent to your email or phone.
             </p>
 
-            <div className="mt-6 grid grid-cols-2 rounded-full bg-stone-100 p-1">
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={isSubmitting}
+              className="mt-6 min-h-11 w-full rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-900 hover:border-stone-900 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Continue with Google
+            </button>
+            <p className="mt-4 text-center text-xs text-stone-500">Or sign in with a one-time code</p>
+
+            <div className="mt-4 grid grid-cols-2 rounded-full bg-stone-100 p-1">
               {['phone', 'email'].map((option) => (
                 <button
                   disabled={isSubmitting}
@@ -220,6 +243,7 @@ export default function AuthDialog({ isOpen, onClose, user, onAuthenticated, onS
               <form className="mt-5" onSubmit={handleVerifyCode}>
                 <p className="text-sm text-stone-600">
                   Enter the code sent to {requestedCode.identifier}.
+                  {requestedCode.method === 'email' && ' You can also use the sign-in link in the email.'}
                 </p>
                 <label htmlFor="auth-code" className="mt-4 block text-sm font-medium text-stone-800">
                   6-digit code

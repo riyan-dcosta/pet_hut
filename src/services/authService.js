@@ -1,4 +1,7 @@
 import { getSupabaseClient } from './supabaseClient.js'
+import { saveGoogleAuthIntent, takeGoogleAuthIntent, saveGoogleLinkIntent, takeGoogleLinkIntent } from './googleAuthFlow.js'
+import { mapUser } from './authUser.js'
+import { fetchAccountUser, requestEmailVerification, verifyEmail } from './accountLinking.js'
 
 function normalizeIdentifier(method, identifier) {
   const value = identifier.trim()
@@ -18,20 +21,6 @@ function normalizeIdentifier(method, identifier) {
     throw new Error('Enter a valid 10-digit Indian mobile number.')
   }
   return phone.startsWith('+91') ? phone : `+91${phone}`
-}
-
-function mapUser(user) {
-  if (!user) return null
-  const method = user.phone ? 'phone' : 'email'
-  const identifier = user.phone || user.email
-  if (!identifier) return null
-
-  return {
-    id: user.id,
-    method,
-    identifier,
-    signedInAt: user.last_sign_in_at ?? null,
-  }
 }
 
 export async function getCurrentUser() {
@@ -82,6 +71,53 @@ export async function verifyOtp(method, identifier, code) {
   const user = mapUser(data.user)
   if (!user) throw new Error('Sign-in succeeded without an account identifier.')
   return user
+}
+
+export async function signInWithGoogle(continueCheckout = false) {
+  const supabase = getSupabaseClient()
+  takeGoogleLinkIntent(window.sessionStorage)
+  saveGoogleAuthIntent(window.sessionStorage, continueCheckout)
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    })
+    if (error) throw new Error(`Unable to start Google sign-in: ${error.message}`)
+  } catch (error) {
+    takeGoogleAuthIntent(window.sessionStorage)
+    throw error
+  }
+}
+
+export async function getAccountUser() {
+  return fetchAccountUser(getSupabaseClient().auth)
+}
+
+export async function linkGoogleIdentity(userId) {
+  const auth = getSupabaseClient().auth
+  const currentUser = await fetchAccountUser(auth)
+  if (currentUser.id !== userId) throw new Error('Your account changed. Reopen account settings and try again.')
+  if (currentUser.providers.includes('google')) throw new Error('Google is already linked to this account.')
+  takeGoogleAuthIntent(window.sessionStorage)
+  saveGoogleLinkIntent(window.sessionStorage, userId)
+  try {
+    const { error } = await auth.linkIdentity({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    })
+    if (error) throw new Error(`Unable to link Google: ${error.message}`)
+  } catch (error) {
+    takeGoogleLinkIntent(window.sessionStorage)
+    throw error
+  }
+}
+
+export async function requestEmailCode(identifier, userId) {
+  return requestEmailVerification(getSupabaseClient().auth, identifier, normalizeIdentifier, userId)
+}
+
+export async function verifyEmailCode(pending, code) {
+  return verifyEmail(getSupabaseClient().auth, pending, code)
 }
 
 export async function signOut() {

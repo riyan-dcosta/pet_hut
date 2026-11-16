@@ -14,10 +14,12 @@ import ShopPage from './pages/ShopPage.jsx'
 import { getCartSummary, loadCart, saveCart } from './services/cartService.js'
 import {
   getCurrentUser,
+  getAccountUser,
   subscribeToAuthChanges,
 } from './services/authService.js'
 import { placeOrder } from './services/orderService.js'
 import { checkPincodeServiceability } from './services/pincodeService.js'
+import { getGoogleCallbackError, takeGoogleAuthIntent, takeGoogleLinkIntent } from './services/googleAuthFlow.js'
 
 export default function App() {
   return (
@@ -35,6 +37,12 @@ function StoreLayout() {
   const [user, setUser] = useState(null)
   const [isAuthLoading, setIsAuthLoading] = useState(true)
   const [backendError, setBackendError] = useState('')
+  const [accountNotice, setAccountNotice] = useState('')
+  const [callbackError] = useState(() =>
+    window.location.pathname === '/auth/callback' ? getGoogleCallbackError(window.location) : '',
+  )
+  const [isGoogleCallback] = useState(() => window.location.pathname === '/auth/callback')
+  const [googleCallbackHandled, setGoogleCallbackHandled] = useState(false)
   const [checkoutMessage, setCheckoutMessage] = useState('')
   const [cartItems, setCartItems] = useState(loadCart)
   const [cartSummary, setCartSummary] = useState({
@@ -50,7 +58,9 @@ function StoreLayout() {
     () => window.localStorage.getItem('pet-hut-pincode') ?? '',
   )
   const [pincodeResult, setPincodeResult] = useState(null)
-  const [isPincodeChecking, setIsPincodeChecking] = useState(false)
+  const [isPincodeChecking, setIsPincodeChecking] = useState(() =>
+    Boolean(window.localStorage.getItem('pet-hut-pincode')),
+  )
   const [pincodeError, setPincodeError] = useState('')
   const closeCart = useCallback(() => setCartOpen(false), [])
 
@@ -193,6 +203,53 @@ function StoreLayout() {
       !cartSummary.items.some((item) => item.unavailable) &&
       !isAuthLoading,
   )
+  useEffect(() => {
+    if (!isGoogleCallback || googleCallbackHandled || isAuthLoading || isCartLoading || isPincodeChecking) return
+
+    setGoogleCallbackHandled(true)
+    const linkUserId = takeGoogleLinkIntent(window.sessionStorage)
+    if (linkUserId) {
+      const finishLink = async () => {
+        try {
+          if (callbackError) throw new Error('Google linking was cancelled or failed. It may already belong to another account; no accounts were merged.')
+          if (backendError || !user || user.id !== linkUserId) throw new Error('Your original account session is unavailable. Please sign in and try again.')
+          const current = await getAccountUser()
+          if (current.id !== linkUserId || !current.providers.includes('google')) {
+            throw new Error('Google was not linked. It may already belong to another account; no accounts were merged.')
+          }
+          setUser(current)
+          setAccountNotice('Google is linked to your account.')
+        } catch (error) {
+          if (!user || user.id !== linkUserId) {
+            setBackendError(error.message)
+          } else {
+            setAccountNotice(error.message)
+          }
+        }
+        if (user && user.id === linkUserId) setAuthOpen(true)
+        navigate('/shop', { replace: true })
+      }
+      finishLink()
+      return
+    }
+    const intent = takeGoogleAuthIntent(window.sessionStorage)
+    if (callbackError || backendError || !user) {
+      setBackendError(callbackError || backendError || 'Google sign-in could not be completed. Please try again.')
+      navigate('/shop', { replace: true })
+      return
+    }
+
+    if (intent === 'checkout' && canCheckout) {
+      navigate('/checkout', { replace: true })
+    } else {
+      if (intent === 'checkout') {
+        setCartOpen(true)
+        setCheckoutMessage('Please check your cart and delivery pincode before checkout.')
+      }
+      navigate('/shop', { replace: true })
+    }
+  }, [backendError, callbackError, canCheckout, googleCallbackHandled, isAuthLoading, isCartLoading, isGoogleCallback, isPincodeChecking, navigate, user])
+
   const handleCheckout = useCallback(() => {
     if (!pincodeResult?.serviceable || pincodeResult.pincode !== pincode.trim()) {
       setCheckoutMessage('Check a serviceable Karnataka pincode before checkout.')
@@ -209,6 +266,7 @@ function StoreLayout() {
   }, [navigate, pincode, pincodeResult, user])
   const handleAuthenticated = useCallback((signedInUser) => {
     setUser(signedInUser)
+    setBackendError('')
     setAuthOpen(false)
     if (continueAfterAuth) {
       setContinueAfterAuth(false)
@@ -219,6 +277,7 @@ function StoreLayout() {
   const handleSignedOut = useCallback(() => setUser(null), [])
   const handleAuthClose = useCallback(() => {
     setAuthOpen(false)
+    setAccountNotice('')
     setContinueAfterAuth(false)
   }, [])
   const handlePlaceOrder = useCallback(async (address) => {
@@ -234,7 +293,7 @@ function StoreLayout() {
         onCartClick={() => setCartOpen(true)}
         onSignInClick={() => setAuthOpen(true)}
         cartCount={cartCount}
-        isAuthenticated={Boolean(user)}
+        user={user}
       />
       {backendError && (
         <p className="bg-rose-50 px-5 py-3 text-center text-sm text-rose-800" role="alert">
@@ -243,6 +302,14 @@ function StoreLayout() {
       )}
       <main className="flex-1">
         <Routes>
+          <Route
+            path="/auth/callback"
+            element={
+              <p className="mx-auto max-w-2xl px-4 py-12 text-center text-stone-600" role="status">
+                Completing sign-in…
+              </p>
+            }
+          />
           <Route
             path="*"
             element={
@@ -349,6 +416,9 @@ function StoreLayout() {
         user={user}
         onAuthenticated={handleAuthenticated}
         onSignedOut={handleSignedOut}
+        onUserUpdate={setUser}
+        accountNotice={accountNotice}
+        continueAfterAuth={continueAfterAuth}
       />
     </div>
   )

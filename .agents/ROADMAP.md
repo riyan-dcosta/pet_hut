@@ -69,28 +69,41 @@ loading/empty/error states remain usable at every supported width.
 
 ## Phase 6: New Additions — Google Auth and Account Linking
 
-**Status: PLANNED** — begins after Phase 5 is complete.
+**Status: CLOSED WITH DEFERRED WORK** — Batch 6.1 is complete for local development. The
+user confirmed the Google checkout test and placed an order; production URL
+configuration remains a deployment prerequisite. The user reports that manual
+linking is enabled. Remaining Batch 6.2 work and Batches 6.3 and 6.4 are
+deferred to Phase TBD; live linking and email verification are not yet verified.
 
-- [ ] Batch 6.1: Configure Google OAuth with Supabase; document provider setup,
+- [x] Batch 6.1: Configure Google OAuth with Supabase; document provider setup,
   allowed redirect URLs, and local/production configuration. Add Google sign-in
   and callback/session handling while preserving email and phone OTP, the cart,
   and checkout.
-- [ ] Batch 6.2: Let signed-in email-only or phone-only users explicitly link a
-  Google identity, and let Google users add verified email and phone sign-in
-  methods. Enable Supabase manual identity linking and show linked methods,
-  progress, cancellation, and errors without exposing sensitive credentials.
-- [ ] Batch 6.3: Address existing separately created accounts and identity
-  conflicts: design and implement a secure recovery/merge flow only after
-  verifying ownership of both accounts. Preserve order history and other
-  account data, enforce authorization, handle conflicts without data loss,
-  and provide a safe resolution when an identity is already linked elsewhere.
-  Never merge accounts based solely on a claimed email or phone number.
-- [ ] Batch 6.4: Test and document Google sign-in, verified-email automatic
-  linking, explicit linking for phone-only and email-only accounts, adding
-  verified contact methods, separate-account conflicts, session restoration,
-  checkout, and order access. Cover rejected, interrupted, and repeated flows
-  and verify that no user can access another user's data.
-
+- [x] Batch 6.2: Implement Google identity linking and verified-email UI with
+  progress, cancellation, and errors. Mocked checks passed; remaining
+  configuration and live verification are deferred to Phase TBD.
 Supabase automatically links compatible identities by verified matching email;
 phone-only accounts require an explicit signed-in linking flow. An identity
 already attached to another user is a conflict, not an automatic account merge.
+
+## Phase TBD: On-Hold Work
+
+**Status: ON HOLD** — not part of Phase 6.
+
+- [ ] Deferred Batch 6.3: Address existing separately created accounts and
+  identity conflicts: design and implement a secure recovery/merge flow only
+  after verifying ownership of both accounts. Preserve order history and other
+  account data, enforce authorization, handle conflicts without data loss,
+  and provide a safe resolution when an identity is already linked elsewhere.
+  Never merge accounts based solely on a claimed email or phone number.
+- [ ] Deferred Batch 6.4: Test and document Google sign-in, separate-account
+  conflicts, session restoration, checkout, and order access. Cover rejected,
+  interrupted, and repeated flows and verify that no user can access another
+  user's data. Live linking and verified-email checks remain on hold below.
+- [ ] Configure hosted sign-in templates to include both the magic link and
+  OTP, and configure the email-change template for verification codes.
+- [ ] Verify real Google linking, verified-email addition, and sign-in with
+  user-controlled test accounts; cover conflicts and interrupted flows.
+- [ ] Add verified phone sign-in methods to existing accounts, including SMS
+  provider configuration, verification, cancellation, conflict handling, and
+  end-to-end testing.
