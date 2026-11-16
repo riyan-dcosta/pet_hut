@@ -16,9 +16,9 @@
 - `src/services/authService.js`: Supabase email/phone OTP, Google OAuth, and
   persisted auth sessions.
 - `src/services/orderService.js`: Uses the authenticated user ID for all order
-  reads and requests. Order placement uses a database RPC to revalidate stock
-  availability, pincode, and current prices/discounts; database policies only
-  expose a user's own orders.
+  reads and requests. Order placement uses a database RPC to verify products
+  are active, revalidate the pincode and current prices/discounts, and persist
+  the order; database policies only expose a user's own orders.
 
 ## Themes
 

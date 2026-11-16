@@ -1,5 +1,6 @@
 import { getSupabaseClient } from './supabaseClient.js'
 import { checkPincodeServiceability } from './pincodeService.js'
+import { MAX_CART_QUANTITY } from './cartService.js'
 
 export const orderRequestReasons = {
   cancel: [
@@ -43,7 +44,7 @@ function normalizeIndianPhone(phone) {
   return normalizedPhone.startsWith('+91') ? normalizedPhone : `+91${normalizedPhone}`
 }
 
-async function validateAddress(address, pincodeResult) {
+async function validateAddress(address, pincodeResult, checkPincode) {
   const requiredFields = ['name', 'phone', 'street', 'city', 'district', 'pincode']
   for (const field of requiredFields) {
     if (typeof address?.[field] !== 'string' || !address[field].trim()) {
@@ -51,26 +52,36 @@ async function validateAddress(address, pincodeResult) {
     }
   }
 
-  const serviceability = await checkPincodeServiceability(address.pincode)
+  const normalizedAddress = Object.fromEntries(
+    requiredFields.map((field) => [field, address[field].trim()]),
+  )
+  const serviceability = await checkPincode(normalizedAddress.pincode)
   if (
     !serviceability.serviceable ||
     !pincodeResult?.serviceable ||
-    pincodeResult.pincode !== address.pincode.trim()
+    pincodeResult.pincode !== normalizedAddress.pincode
   ) {
     throw new Error('Check a serviceable Karnataka pincode before placing your order.')
   }
 
   if (
-    serviceability.city.toLowerCase() !== address.city.trim().toLowerCase() ||
-    serviceability.district.toLowerCase() !== address.district.trim().toLowerCase()
+    serviceability.city.toLowerCase() !== normalizedAddress.city.toLowerCase() ||
+    serviceability.district.toLowerCase() !== normalizedAddress.district.toLowerCase()
   ) {
     throw new Error('The city and district must match the verified pincode.')
   }
 
-  return { ...address, phone: normalizeIndianPhone(address.phone) }
+  return {
+    ...normalizedAddress,
+    phone: normalizeIndianPhone(normalizedAddress.phone),
+    state: serviceability.state,
+  }
 }
 
-export async function placeOrder({ user, cartItems, address, pincodeResult }) {
+export async function placeOrder(
+  { user, cartItems, address, pincodeResult },
+  dependencies = {},
+) {
   if (!user?.id) throw new Error('Sign in before placing your order.')
   if (
     !Array.isArray(cartItems) ||
@@ -79,15 +90,18 @@ export async function placeOrder({ user, cartItems, address, pincodeResult }) {
         item &&
         typeof item.productId === 'string' &&
         Number.isSafeInteger(item.quantity) &&
-        item.quantity > 0,
+        item.quantity > 0 &&
+        item.quantity <= MAX_CART_QUANTITY,
     )
   ) {
     throw new Error('Your cart contains invalid items.')
   }
   if (cartItems.length === 0) throw new Error('Your cart is empty.')
 
-  const normalizedAddress = await validateAddress(address, pincodeResult)
-  const { data, error } = await getSupabaseClient().rpc('place_pet_hut_order', {
+  const checkPincode = dependencies.checkPincode ?? checkPincodeServiceability
+  const normalizedAddress = await validateAddress(address, pincodeResult, checkPincode)
+  const supabase = dependencies.supabase ?? getSupabaseClient()
+  const { data, error } = await supabase.rpc('place_pet_hut_order', {
     p_address: normalizedAddress,
     p_items: cartItems.map(({ productId, quantity }) => ({ productId, quantity })),
   })

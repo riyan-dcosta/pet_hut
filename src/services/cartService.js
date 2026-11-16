@@ -2,6 +2,7 @@ import { getProductsByIds } from './productService.js'
 import { getActiveSeasonalOffers, getSeasonalPrice } from './seasonalOfferService.js'
 
 const CART_STORAGE_KEY = 'pet-hut-cart'
+export const MAX_CART_QUANTITY = 99
 
 function roundRupees(amount) {
   return Number(amount.toFixed(2))
@@ -36,10 +37,18 @@ export function loadCart() {
       return null
     }
 
-    return { productId: item.productId, quantity: item.quantity }
+    return {
+      productId: item.productId,
+      quantity: Math.min(item.quantity, MAX_CART_QUANTITY),
+    }
   }).filter(Boolean)
 
-  if (cartItems.length !== parsedCart.length) saveCart(cartItems)
+  if (
+    cartItems.length !== parsedCart.length ||
+    cartItems.some((item, index) => item.quantity !== parsedCart[index]?.quantity)
+  ) {
+    saveCart(cartItems)
+  }
 
   return cartItems
 }

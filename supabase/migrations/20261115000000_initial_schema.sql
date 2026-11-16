@@ -165,6 +165,10 @@ language plpgsql
 set search_path = ''
 as $$
 begin
+  if current_user <> 'authenticated' then
+    return new;
+  end if;
+
   if (to_jsonb(new) - array['status', 'cancellation_reason', 'return_reason'])
      is distinct from
      (to_jsonb(old) - array['status', 'cancellation_reason', 'return_reason']) then

@@ -23,8 +23,8 @@ function normalizeIdentifier(method, identifier) {
   return phone.startsWith('+91') ? phone : `+91${phone}`
 }
 
-export async function getCurrentUser() {
-  const { data, error } = await getSupabaseClient().auth.getSession()
+export async function getCurrentUser(supabase = getSupabaseClient()) {
+  const { data, error } = await supabase.auth.getSession()
   if (error) throw new Error(`Unable to restore sign-in: ${error.message}`)
   return mapUser(data.session?.user)
 }

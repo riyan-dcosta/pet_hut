@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Minus, Plus, X } from 'lucide-react'
 import PincodeChecker from './PincodeChecker.jsx'
+import { MAX_CART_QUANTITY } from '../services/cartService.js'
 
 const currency = new Intl.NumberFormat('en-IN', {
   style: 'currency',
@@ -150,7 +151,8 @@ export default function CartDrawer({
                           type="button"
                           onClick={() => onQuantityChange(product.id, 1)}
                           aria-label={`Increase ${product.name} quantity`}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-full text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                          disabled={quantity >= MAX_CART_QUANTITY}
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-full text-stone-600 hover:bg-stone-100 hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           <Plus size={14} />
                         </button>

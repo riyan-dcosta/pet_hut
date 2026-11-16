@@ -11,7 +11,12 @@ import CheckoutPage from './pages/CheckoutPage.jsx'
 import OrderConfirmationPage from './pages/OrderConfirmationPage.jsx'
 import OrdersPage from './pages/OrdersPage.jsx'
 import ShopPage from './pages/ShopPage.jsx'
-import { getCartSummary, loadCart, saveCart } from './services/cartService.js'
+import {
+  getCartSummary,
+  loadCart,
+  MAX_CART_QUANTITY,
+  saveCart,
+} from './services/cartService.js'
 import {
   getCurrentUser,
   getAccountUser,
@@ -175,7 +180,7 @@ function StoreLayout() {
       if (existing) {
         return items.map((item) =>
           item.productId === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: Math.min(item.quantity + 1, MAX_CART_QUANTITY) }
             : item,
         )
       }
@@ -188,7 +193,7 @@ function StoreLayout() {
       items
         .map((item) =>
           item.productId === productId
-            ? { ...item, quantity: item.quantity + change }
+            ? { ...item, quantity: Math.min(item.quantity + change, MAX_CART_QUANTITY) }
             : item,
         )
         .filter((item) => item.quantity > 0),
