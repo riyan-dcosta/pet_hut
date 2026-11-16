@@ -16,7 +16,9 @@ function mapOffer(row) {
 export async function getActiveSeasonalOffers(now = new Date()) {
   const { data, error } = await getSupabaseClient()
     .from('seasonal_offers')
-    .select('*')
+    .select(
+      'id, name, description, discount_percent, product_ids, starts_at, ends_at, banner_text',
+    )
     .eq('enabled', true)
 
   if (error) throw new Error(`Unable to load seasonal offers: ${error.message}`)

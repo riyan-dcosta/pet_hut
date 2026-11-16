@@ -36,7 +36,9 @@ browsing.
 
 - [x] Batch 4.1: Connect services to Supabase for catalog, offers, pincodes,
   orders, and live Email/Phone OTP authentication.
-- [ ] Batch 4.2: Support backend-managed offers and pincodes and polish.
+- [x] Batch 4.2: Support backend-managed offers and pincodes and polish.
+
+**Status: CLOSED** — all Phase 4 batches are complete.
 
 ## Phase 5: New Additions — Google Auth and Account Linking
 

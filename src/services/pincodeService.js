@@ -14,7 +14,7 @@ export async function checkPincodeServiceability(pincode) {
   const numericPincode = Number(normalizedPincode)
   const { data: range, error } = await getSupabaseClient()
     .from('serviceable_pincodes')
-    .select('*')
+    .select('state, city, district, delivery_days_min, delivery_days_max')
     .eq('serviceable', true)
     .lte('start_pincode', numericPincode)
     .gte('end_pincode', numericPincode)
