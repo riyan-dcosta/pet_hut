@@ -31,21 +31,21 @@ const testimonials = [
 export default function Testimonials() {
   return (
     <section className="bg-white">
-      <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:py-24">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-8 sm:py-20 lg:py-24">
         <div className="mx-auto mb-10 max-w-2xl text-center sm:mb-14">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-800">
             Notes from pet parents
           </p>
-          <h2 className="mt-4 text-3xl font-medium tracking-tight text-stone-900 sm:text-4xl">
+          <h2 className="mt-4 text-2xl font-medium tracking-tight text-stone-900 sm:text-4xl">
             A little love goes a long way.
           </h2>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-5">
           {testimonials.map((testimonial) => (
             <figure
               key={testimonial.pet}
-              className="flex flex-col rounded-2xl border border-stone-200 bg-stone-50 p-6 sm:p-8"
+              className="flex min-w-0 flex-col rounded-2xl border border-stone-200 bg-stone-50 p-5 sm:p-7"
             >
               <blockquote className="flex-1 text-base leading-7 text-stone-700">
                 “{testimonial.quote}”
@@ -56,6 +56,7 @@ export default function Testimonials() {
                   alt={testimonial.alt}
                   className="h-14 w-14 rounded-full object-cover"
                   loading="lazy"
+                  sizes="3.5rem"
                 />
                 <div>
                   <p className="font-medium text-stone-900">{testimonial.pet}</p>

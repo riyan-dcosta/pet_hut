@@ -1,7 +1,8 @@
-import { getProductById } from './productService.js'
-import { getSeasonalPrice } from './seasonalOfferService.js'
+import { getProductsByIds } from './productService.js'
+import { getActiveSeasonalOffers, getSeasonalPrice } from './seasonalOfferService.js'
 
 const CART_STORAGE_KEY = 'pet-hut-cart'
+export const MAX_CART_QUANTITY = 99
 
 function roundRupees(amount) {
   return Number(amount.toFixed(2))
@@ -36,14 +37,18 @@ export function loadCart() {
       return null
     }
 
-    if (!getProductById(item.productId)) {
-      return null
+    return {
+      productId: item.productId,
+      quantity: Math.min(item.quantity, MAX_CART_QUANTITY),
     }
-
-    return { productId: item.productId, quantity: item.quantity }
   }).filter(Boolean)
 
-  if (cartItems.length !== parsedCart.length) saveCart(cartItems)
+  if (
+    cartItems.length !== parsedCart.length ||
+    cartItems.some((item, index) => item.quantity !== parsedCart[index]?.quantity)
+  ) {
+    saveCart(cartItems)
+  }
 
   return cartItems
 }
@@ -52,14 +57,32 @@ export function saveCart(cartItems) {
   window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems))
 }
 
-export function getCartSummary(cartItems, now = new Date()) {
-  const items = cartItems.map(({ productId, quantity }) => {
-    const product = getProductById(productId)
+export async function getCartSummary(cartItems, now = new Date()) {
+  if (cartItems.length === 0) {
+    return { items: [], subtotalRupees: 0, discountRupees: 0, totalRupees: 0 }
+  }
+
+  const productIds = [...new Set(cartItems.map(({ productId }) => productId))]
+  const [products, offers] = await Promise.all([
+    getProductsByIds(productIds),
+    getActiveSeasonalOffers(now),
+  ])
+  const productsById = new Map(products.map((product) => [product.id, product]))
+  const items = await Promise.all(cartItems.map(async ({ productId, quantity }) => {
+    const product = productsById.get(productId)
     if (!product) {
-      throw new Error(`Cart references unavailable product "${productId}".`)
+      return {
+        product: { id: productId, name: 'Unavailable product' },
+        quantity,
+        unitPriceRupees: 0,
+        lineTotalRupees: 0,
+        lineDiscountRupees: 0,
+        offer: null,
+        unavailable: true,
+      }
     }
 
-    const seasonalPrice = getSeasonalPrice(product, now)
+    const seasonalPrice = await getSeasonalPrice(product, now, offers)
     const unitDiscountRupees = seasonalPrice.discountRupees
 
     return {
@@ -69,11 +92,16 @@ export function getCartSummary(cartItems, now = new Date()) {
       lineTotalRupees: roundRupees(seasonalPrice.priceRupees * quantity),
       lineDiscountRupees: roundRupees(unitDiscountRupees * quantity),
       offer: seasonalPrice.offer,
+      unavailable: false,
     }
-  })
+  }))
 
   const subtotalRupees = roundRupees(
-    items.reduce((total, item) => total + item.product.priceRupees * item.quantity, 0),
+    items.reduce(
+      (total, item) =>
+        total + (item.unavailable ? 0 : item.product.priceRupees * item.quantity),
+      0,
+    ),
   )
   const discountRupees = roundRupees(
     items.reduce((total, item) => total + item.lineDiscountRupees, 0),
