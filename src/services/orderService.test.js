@@ -1,92 +1,90 @@
 import assert from 'node:assert/strict'
-import { afterEach, test } from 'node:test'
-import { getOrdersByUser, placeOrder } from './orderService.js'
-import { checkPincodeServiceability } from './pincodeService.js'
-
-const storageKey = 'pet-hut-orders'
-
-afterEach(() => {
-  delete globalThis.window
-})
-
-test('ignores malformed orders without rewriting storage during reads', (t) => {
-  const savedOrders = JSON.stringify([null])
-  const storage = new Map([[storageKey, savedOrders]])
-  globalThis.window = {
-    localStorage: {
-      getItem: (key) => storage.get(key) ?? null,
-      setItem: (key, value) => storage.set(key, value),
-      removeItem: (key) => storage.delete(key),
-    },
-  }
-  t.mock.method(console, 'warn', () => {})
-
-  assert.deepEqual(getOrdersByUser('user@example.com'), [])
-  assert.equal(storage.get(storageKey), savedOrders)
-})
+import { test } from 'node:test'
+import { placeOrder } from './orderService.js'
+import { MAX_CART_QUANTITY } from './cartService.js'
 
 test('rejects invalid cart quantities before creating an order', async () => {
   const invalidCarts = [
     null,
     {},
+    [{ productId: 'pedigree-adult-chicken-1-2kg', quantity: 0 }],
     [{ productId: 'pedigree-adult-chicken-1-2kg', quantity: -2 }],
     [{ productId: 'pedigree-adult-chicken-1-2kg', quantity: 1.5 }],
     [{ productId: 'pedigree-adult-chicken-1-2kg', quantity: Number.MAX_SAFE_INTEGER + 1 }],
+    [{ productId: 'pedigree-adult-chicken-1-2kg', quantity: MAX_CART_QUANTITY + 1 }],
   ]
 
   for (const cartItems of invalidCarts) {
     await assert.rejects(
-      placeOrder({ user: { identifier: 'user@example.com' }, cartItems }),
+      placeOrder({ user: { id: 'user-123' }, cartItems }),
       /cart contains invalid items/,
     )
   }
 })
 
-test('serializes concurrent order writes across tabs', async () => {
-  const storage = new Map()
-  let lockQueue = Promise.resolve()
-  let orderId = 0
-  globalThis.window = {
-    crypto: { randomUUID: () => `order-${++orderId}` },
-    navigator: {
-      locks: {
-        request: async (name, operation) => {
-          assert.equal(name, storageKey)
-          const previous = lockQueue
-          let release
-          lockQueue = new Promise((resolve) => {
-            release = resolve
-          })
-          await previous
-          try {
-            return await operation()
-          } finally {
-            release()
-          }
+test('revalidates pincode and sends a normalized address to the order RPC', async () => {
+  let rpcRequest
+  const supabase = {
+    rpc: async (name, parameters) => {
+      assert.equal(name, 'place_pet_hut_order')
+      rpcRequest = parameters
+      return {
+        data: {
+          id: 'order-123',
+          user_id: 'user-123',
+          status: 'placed',
+          items: [{
+            productId: 'pedigree-adult-chicken-1-2kg',
+            name: 'Pedigree',
+            quantity: 1,
+            unitPriceRupees: '100',
+            offerId: null,
+          }],
+          subtotal_rupees: '100',
+          discount_rupees: '0',
+          total_rupees: '100',
+          address: parameters.p_address,
+          created_at: '2026-11-16T00:00:00.000Z',
         },
-      },
-    },
-    localStorage: {
-      getItem: (key) => storage.get(key) ?? null,
-      setItem: (key, value) => storage.set(key, value),
-      removeItem: (key) => storage.delete(key),
+        error: null,
+      }
     },
   }
   const request = {
-    user: { identifier: 'user@example.com' },
+    user: { id: 'user-123' },
     cartItems: [{ productId: 'pedigree-adult-chicken-1-2kg', quantity: 1 }],
     address: {
-      name: 'Pet Parent',
-      phone: '9876543210',
-      street: '1 Main Street',
-      city: 'Bengaluru',
-      district: 'Bengaluru Urban',
-      pincode: '560001',
+      name: ' Pet Parent ',
+      phone: ' 987 654 3210 ',
+      street: ' 1 Main Street ',
+      city: ' Bengaluru ',
+      district: ' Bengaluru Urban ',
+      pincode: ' 560001 ',
     },
-    pincodeResult: checkPincodeServiceability('560001'),
+    pincodeResult: { serviceable: true, pincode: '560001' },
   }
 
-  await Promise.all([placeOrder(request), placeOrder(request)])
+  const order = await placeOrder(request, {
+    supabase,
+    checkPincode: async (pincode) => {
+      assert.equal(pincode, '560001')
+      return {
+        serviceable: true,
+        state: 'Karnataka',
+        city: 'Bengaluru',
+        district: 'Bengaluru Urban',
+      }
+    },
+  })
 
-  assert.equal(JSON.parse(storage.get(storageKey)).length, 2)
+  assert.deepEqual(rpcRequest.p_address, {
+    name: 'Pet Parent',
+    phone: '+919876543210',
+    street: '1 Main Street',
+    city: 'Bengaluru',
+    district: 'Bengaluru Urban',
+    pincode: '560001',
+    state: 'Karnataka',
+  })
+  assert.equal(order.id, 'order-123')
 })
