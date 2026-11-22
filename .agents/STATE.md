@@ -24,6 +24,17 @@ verified saved-cart normalization at 101, adding at 99, the disabled increase
 button at 99, and decrement/increment between 98 and 99. The GitHub threads
 remain open; code verification did not resolve them.
 
+[SFTP Deployment]
+The supplied hosting HAR showed the site under
+`/1jq.790.mytemp.website/pet-hut/`, but its root-relative JS/CSS requests
+returned 404. Vite `base`, React Router basename, and OAuth callback URLs now
+support configurable `VITE_BASE_PATH`. A production build for that exact path
+passed local checks for JS/CSS asset paths and SPA route fallback. The build
+uses the local Supabase configuration; confirm it is production before upload.
+Apache rewrite rules and deployment instructions are included. Actual host
+rewrite behavior, live authentication, and cross-user isolation remain
+unverified. Payment and inventory enforcement are not implemented.
+
 [Files Modified]
 - `.env.example`
 - `.agents/ARCHITECTURE.md`

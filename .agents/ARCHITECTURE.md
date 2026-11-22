@@ -87,6 +87,17 @@ Vite, normally `http://localhost:5173`. If a development server is already
 running, use its existing URL instead of starting another one. Run
 `npm run build` to check the production build.
 
+## Static hosting
+
+See `readme.md` for SFTP deployment and production prerequisites. Set
+`VITE_BASE_PATH` to `/` for the domain root or to the app's exact path with
+leading/trailing slashes for a subdirectory deployment. Vite asset URLs,
+React Router links, and OAuth callback URLs use the configured base path.
+`public/.htaccess` is copied into `dist` for Apache SPA route fallback when
+rewrite overrides are enabled; other web servers need an equivalent fallback
+separately. The build embeds its Supabase URL and publishable key at build time
+and must be rebuilt for another project or path.
+
 ## Google sign-in setup
 
 1. In Google Auth Platform, configure the consent screen, audience and test

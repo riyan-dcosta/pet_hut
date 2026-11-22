@@ -2,6 +2,7 @@ import { getSupabaseClient } from './supabaseClient.js'
 import { saveGoogleAuthIntent, takeGoogleAuthIntent, saveGoogleLinkIntent, takeGoogleLinkIntent } from './googleAuthFlow.js'
 import { mapUser } from './authUser.js'
 import { fetchAccountUser, requestEmailVerification, verifyEmail } from './accountLinking.js'
+import { getAppPath } from './appPaths.js'
 
 function normalizeIdentifier(method, identifier) {
   const value = identifier.trim()
@@ -80,7 +81,7 @@ export async function signInWithGoogle(continueCheckout = false) {
   try {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${window.location.origin}${getAppPath('/auth/callback')}` },
     })
     if (error) throw new Error(`Unable to start Google sign-in: ${error.message}`)
   } catch (error) {
@@ -103,7 +104,7 @@ export async function linkGoogleIdentity(userId) {
   try {
     const { error } = await auth.linkIdentity({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${window.location.origin}${getAppPath('/auth/callback')}` },
     })
     if (error) throw new Error(`Unable to link Google: ${error.message}`)
   } catch (error) {

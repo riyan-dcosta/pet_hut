@@ -52,3 +52,17 @@ were already tracked.
   RPC; auth tests await a mocked Supabase session lookup.
 - `.env.example` is tracked and contains both required placeholder variables.
 - All 21 service tests pass.
+
+## SFTP deployment
+
+A root-hosted static build and Apache SPA fallback are available. Production
+project selection, host rewrites and HTTPS, auth configuration, live security
+verification, real catalog/delivery data, payment, and inventory/fulfilment
+remain launch prerequisites; see `readme.md`. The build alone is not evidence
+that these are complete.
+
+The supplied hosting HAR showed the app uploaded under
+`/1jq.790.mytemp.website/pet-hut/`, while its JS and CSS were requested at
+`/assets/` and returned 404. Vite base path, React Router basename, and OAuth
+callback URLs now use `VITE_BASE_PATH`; a build for the observed path passed
+local asset and SPA fallback checks.

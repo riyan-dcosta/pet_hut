@@ -25,10 +25,11 @@ import {
 import { placeOrder } from './services/orderService.js'
 import { checkPincodeServiceability } from './services/pincodeService.js'
 import { getGoogleCallbackError, takeGoogleAuthIntent, takeGoogleLinkIntent } from './services/googleAuthFlow.js'
+import { getAppPath } from './services/appPaths.js'
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <StoreLayout />
     </BrowserRouter>
   )
@@ -44,9 +45,11 @@ function StoreLayout() {
   const [backendError, setBackendError] = useState('')
   const [accountNotice, setAccountNotice] = useState('')
   const [callbackError] = useState(() =>
-    window.location.pathname === '/auth/callback' ? getGoogleCallbackError(window.location) : '',
+    window.location.pathname === getAppPath('/auth/callback')
+      ? getGoogleCallbackError(window.location)
+      : '',
   )
-  const [isGoogleCallback] = useState(() => window.location.pathname === '/auth/callback')
+  const [isGoogleCallback] = useState(() => window.location.pathname === getAppPath('/auth/callback'))
   const [googleCallbackHandled, setGoogleCallbackHandled] = useState(false)
   const [checkoutMessage, setCheckoutMessage] = useState('')
   const [cartItems, setCartItems] = useState(loadCart)
