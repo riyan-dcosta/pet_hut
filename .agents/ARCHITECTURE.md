@@ -112,8 +112,11 @@ running, use its existing URL instead of starting another one. Run
    cannot be resumed after revalidation, the cart opens for correction.
 
 The Google client ID and secret are configured outside this repository.
-Email and phone OTP remain available. Automatic identity linking is handled
-by Supabase for matching verified emails.
+Email and phone OTP remain available. Supabase automatic account linking is the
+chosen strategy: when a new OAuth identity has the same verified email as an
+existing user, Supabase links it to that Auth user. This does not retroactively
+merge two Auth users that already exist. The app does not perform its own
+email/phone matching or account merge.
 
 ## Account linking and verified contacts
 
@@ -137,6 +140,16 @@ verification with user-controlled test accounts and codes are on hold in Phase
 TBD. Adding phone sign-in methods is also on hold there; existing phone OTP
 sign-in is unchanged. Separately created account conflicts and recovery are
 deferred with Batch 6.3 to Phase TBD.
+
+Manual linking remains available to a signed-in user for a new provider
+identity. If that identity is already linked to another account, linking fails
+closed; the app tells the user to sign in with that identity's existing
+account. Orders and other account data stay with their original Auth user.
+Supabase does not document moving an identity between users, so do not edit
+`auth.identities` directly or implement a custom merge. Deleting an Auth user
+can cascade `orders.user_id`, and already-issued access tokens can remain valid
+until expiry. Any future data-consolidation feature would need separate
+approval and a supported, verified strategy.
 
 ## Managing offers and delivery areas
 

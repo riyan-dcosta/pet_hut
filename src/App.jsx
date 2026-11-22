@@ -216,11 +216,11 @@ function StoreLayout() {
     if (linkUserId) {
       const finishLink = async () => {
         try {
-          if (callbackError) throw new Error('Google linking was cancelled or failed. It may already belong to another account; no accounts were merged.')
+          if (callbackError) throw new Error('Google linking was cancelled or failed. If this Google account already belongs to a Pet Hut account, sign in with Google to access that account. Orders remain with their original accounts; nothing was transferred or merged.')
           if (backendError || !user || user.id !== linkUserId) throw new Error('Your original account session is unavailable. Please sign in and try again.')
           const current = await getAccountUser()
           if (current.id !== linkUserId || !current.providers.includes('google')) {
-            throw new Error('Google was not linked. It may already belong to another account; no accounts were merged.')
+            throw new Error('Google was not linked. If this Google account already belongs to another Pet Hut account, sign in with Google to access that account. Orders remain with their original accounts; nothing was transferred or merged.')
           }
           setUser(current)
           setAccountNotice('Google is linked to your account.')
